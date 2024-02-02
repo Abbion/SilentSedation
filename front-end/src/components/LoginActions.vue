@@ -2,10 +2,10 @@
     <div class="loginActions">
       <div class="namedCheckBox">
         <div class="checkbox" @click="switchCheck">
-            <div v-show="isChecked" class="checkFill"> </div>
+          <CheckIcon class="checkIcon" v-show="isChecked" />
         </div>
-        <div>
-            Remember me
+        <div class="checkBoxText preventSelect">
+          Remember me
         </div>
       </div>
       <button>
@@ -15,14 +15,16 @@
 </template>
 
 <script setup lang="ts">
-    import { ref } from 'vue'
-    let isChecked = ref(true);
+  import CheckIcon from './icons/IconCheck.vue'
 
-    function switchCheck() {
-        isChecked.value = !isChecked.value;
-        console.log(isChecked);
-        
-    }
+  import { ref } from 'vue'
+  let isChecked = ref(true);
+
+  function switchCheck() {
+      isChecked.value = !isChecked.value;
+      console.log(isChecked);
+      
+  }
 
 </script>
 
@@ -53,7 +55,7 @@
     width: 16px;
     height: 16px;
     
-    border-color: black;
+    border-color: #EAEAEA;
     border-width: 1px;
     border-style: solid;
     border-radius: 5px;
@@ -67,19 +69,23 @@
     cursor: pointer;
 }
 
-.checkFill {
+.checkIcon {
     width: 70%;
     height: 70%;
 
-    background-color: red;
+    fill: #EAEAEA;
+}
+
+.checkBoxText {
+  color: #EAEAEA;
 }
 
 button {
     width: 90px;
     height: 40px;
 
-    background-color: black;
-    color: white;
+    background-color: #EAEAEA;
+    color: #00040D;
 
     border: none;
     border-radius: 10px;
@@ -87,6 +93,12 @@ button {
 
 button:hover {
     cursor: pointer;
+}
+
+@media screen and (max-width: 600px) {
+  .loginActions {
+    width: 100%;
+  }
 }
 
 </style>

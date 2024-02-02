@@ -1,6 +1,6 @@
 <template>
   <div class="entryContainer">
-    <p>
+    <p class="preventSelect">
         {{ props.inputTitle }}
     </p>
     <input :type="inputType">
@@ -27,6 +27,8 @@ p {
 
   margin-bottom: 0.5em;
   margin-left: 0.5em;
+
+  color: #EAEAEA;
 }
 
 input {
@@ -45,13 +47,15 @@ input {
   background-color: transparent;
   
   border-style: solid;
-  border-color: rgba(0, 0, 0, 0.603);
+  border-color: #eaeaeaa2;
   border-width: 1px;
+
+  color: #EAEAEA;
 }
 
 input:focus{
   outline: none;
-  border-color: black;
+  border-color: #EAEAEA;
 }
 
 </style>
