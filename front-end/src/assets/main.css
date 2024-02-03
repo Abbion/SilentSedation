@@ -4,12 +4,18 @@ body {
   
   background-color: #00040f;
   max-width: 1280px;
+
+  font-family: 'Segoe UI Light';
 }
 
 .preventSelect {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
+}
+
+.cursorPointer:hover {
+  cursor: pointer;
 }
 
 * {

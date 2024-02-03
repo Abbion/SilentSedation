@@ -1,10 +1,20 @@
 <template>
-    <div class="dashContainer dashContainerOpen" @click="toggleMore">
-        <div class="userIconBox">
-            <userIcon class="userIcon" />
+    <div class="dashContainer" :class="{dashContainerClose: !dashState, dashContainerOpen: dashState}">
+        <div class="userAccount" @click="toggleMore">
+            <div class="userIconBox">
+                <userIcon class="userIcon" />
+            </div>
+            <div v-show="!dashState" class="more preventSelect">
+                ...
+            </div>
+            <div v-show="dashState" class="userName preventSelect">
+                Wiktor
+            </div>
         </div>
-        <div class="more preventSelect">
-            ...
+        <div v-show="dashState" class="logOut preventSelect" @click="logOut">
+            <p>
+                log out
+            </p>
         </div>
     </div>
 
@@ -13,27 +23,18 @@
 
 <script setup lang="ts">
     import UserIcon from './icons/IconUser.vue'
+    import { ref } from 'vue'
 
-    var dashState = false
+    var dashState = ref(false)
 
     function toggleMore() {
-        dashState = !dashState;
-
-        if (dashState) {
-            showDash();
-        }
-        else {
-            closeDash();
-        }
+        dashState .value= !dashState.value;
     }
 
-    function showDash() {
-        
+    function logOut() {
+        console.log("LogOut");
     }
 
-    function closeDash() {
-
-    }
 </script>
 
 <style scoped>
@@ -42,11 +43,37 @@
     border-width: 2px;
     border-style: solid;
 
-    border-radius: 20px;
+    border-radius: 15px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: space;
+}
+
+.userAccount {
+    width: 100%;
 
     display: flex;
     flex-direction: row;
     align-items: center;
+
+}
+
+.logOut {
+    width: 100%;
+    height: 28px;
+
+    border-radius: 0 0 12px 12px;
+    margin-top: 6px;
+
+    background-color: #ecaaaa;
+    z-index: -1;
+}
+
+.logOut > p {
+    margin-left: 10px;
+    
+    font-size: 20px;
 }
 
 .dashContainer:hover{
@@ -55,12 +82,12 @@
 
 .dashContainerClose {
     width: 60px;
-    height: 30px;
+    max-height: 30px;
 }
 
 .dashContainerOpen {
     width: 100px;
-    height: 100px;
+    height: 55px;
 }
 
 .userIconBox{
@@ -83,13 +110,21 @@
     height: 80%;
 
     fill: #00040f;
-    margin-top: 3px;
+    margin-top: 4px;
 }
 
 .more {
     font-size: 20px;
     color: #EAEAEA;
-    padding-bottom: 3px;
+
+    transform: translate(0px, -2px);
+}
+
+.userName {
+    font-size: 20px;
+    color: #EAEAEA;
+
+    transform: translate(0px, 2px);
 }
 
 </style>

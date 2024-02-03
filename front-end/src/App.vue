@@ -12,22 +12,25 @@
     <LoginActions/>
   </div>
   -->
+
   <div class="mainPageContainer">
     <div class="topPanel">
       <UserDash />
     </div>
     <div class="pageInfo">
-      <p>
+      <p class="preventSelect">
         Devices
       </p>
       <div class="pageInfoLine"></div>
 
     </div>
     <div class="content">
-
+      <DeviceCard/>
+      <DeviceCard/>
     </div>
-
+    
   </div>
+  
 </template>
 
 <script setup lang="ts">
@@ -35,9 +38,11 @@ import LoginInput from './components/LoginInput.vue'
 import LoginActions from './components/LoginActions.vue'
 
 import UserDash from './components/UserDash.vue'
+import DeviceCard from './components/DeviceCard.vue'
 
 import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
+import type { isMetaProperty } from 'typescript';
 </script>
 
 <style scoped>
@@ -48,14 +53,11 @@ import TheWelcome from './components/TheWelcome.vue'
   align-items: center;
 }
 .topPanel {
-  height: 120px;
+  height:80px;
   width: 100%;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   
-  padding-left: 100px;
+  padding-top: 40px;
+  padding-left: 70px;
 }
 
 .pageInfo{
@@ -76,7 +78,19 @@ import TheWelcome from './components/TheWelcome.vue'
   background-color: #EAEAEA;
   width: 100%;
   height: 2px;
+
+  margin-bottom: 40px;
 }
+
+.content {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  width: 75%;
+}
+
+
+
 
 .loginContainer {
   width: 600px;
