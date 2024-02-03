@@ -113,6 +113,7 @@ import type { isMetaProperty } from 'typescript';
   font-size: 82px;
 
   color: #EAEAEA;
+  font-family: 'Bahnschrift Light';
 }
 
 @media screen and (max-width: 600px) {

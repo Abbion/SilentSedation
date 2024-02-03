@@ -1,8 +1,18 @@
+:root {
+  --color-red: #E1B5B5;
+  --color-red-highlight: #E79C9C;
+  --color-green: #9EDDB7;
+  --color-green-highlight: #7ff3ae;
+  --color-main-dark: #00040F;
+  --color-main-dark--highlight: #EAEAEA24;
+  --color-main-light: #EAEAEA;
+}
+
 body {
   margin: 0;
   padding: 0;
   
-  background-color: #00040f;
+  background-color: var(--color-main-dark);
   max-width: 1280px;
 
   font-family: 'Segoe UI Light';

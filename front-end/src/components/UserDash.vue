@@ -1,6 +1,6 @@
 <template>
-    <div class="dashContainer" :class="{dashContainerClose: !dashState, dashContainerOpen: dashState}">
-        <div class="userAccount" @click="toggleMore">
+    <div class="dashContainer" :class="{dashContainerClose: !dashState, dashContainerOpen: dashState}" @click="someMethod">
+        <div id="userInfo" class="userAccount cursorPointer" @click="toggleMore">
             <div class="userIconBox">
                 <userIcon class="userIcon" />
             </div>
@@ -11,8 +11,8 @@
                 Wiktor
             </div>
         </div>
-        <div v-show="dashState" class="logOut preventSelect" @click="logOut">
-            <p>
+        <div id="logOut" v-show="dashState" class="logOut cursorPointer preventSelect" @click="logOut">
+            <p id="logOutText">
                 log out
             </p>
         </div>
@@ -26,6 +26,7 @@
     import { ref } from 'vue'
 
     var dashState = ref(false)
+    var dashClicked = false;
 
     function toggleMore() {
         dashState .value= !dashState.value;
@@ -35,11 +36,29 @@
         console.log("LogOut");
     }
 
+    document.onmousedown = function(e) {
+        const attr = e.target.attributes;
+        if (attr) {
+            const idAttr = attr['id'];
+            if (idAttr){
+                const value = idAttr.value;
+                //This is pain XD
+                if (value == "userInfo" || value == "logOut" || value == "logOutText"){
+                    return;
+                }
+            }
+        }
+        
+        if (dashState.value) {
+            dashState .value = false;
+        }
+    }
+
 </script>
 
 <style scoped>
 .dashContainer {    
-    border-color: #EAEAEA;
+    border-color: var(--color-main-light);
     border-width: 2px;
     border-style: solid;
 
@@ -52,6 +71,7 @@
 
 .userAccount {
     width: 100%;
+    height: 28px;
 
     display: flex;
     flex-direction: row;
@@ -63,37 +83,32 @@
     width: 100%;
     height: 28px;
 
-    border-radius: 0 0 12px 12px;
-    margin-top: 6px;
+    background-color: var(--color-red);
+    border-radius: 0 0 12.5px 12.5px;
+}
 
-    background-color: #ecaaaa;
-    z-index: -1;
+.logOut:hover {
+    background-color: var(--color-red-highlight);
 }
 
 .logOut > p {
-    margin-left: 10px;
-    
-    font-size: 20px;
-}
-
-.dashContainer:hover{
-    cursor: pointer;
+    margin-left: 15px;
 }
 
 .dashContainerClose {
     width: 60px;
-    max-height: 30px;
+    height: 28px;
 }
 
 .dashContainerOpen {
-    width: 100px;
+    width: fit-content;
     height: 55px;
 }
 
 .userIconBox{
     width: 20px;
     height: 20px;
-    background-color: #EAEAEA;
+    background-color: var(--color-main-light);
     border-radius: 100%;
 
     margin-left: 5px;
@@ -103,28 +118,34 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+
+    z-index: -1;
 }
 
 .userIcon{
     width: 80%;
     height: 80%;
 
-    fill: #00040f;
+    fill: var(--color-main-dark);
     margin-top: 4px;
+
+    z-index: -1;
 }
 
 .more {
     font-size: 20px;
-    color: #EAEAEA;
+    color: var(--color-main-light);;
 
     transform: translate(0px, -2px);
+
+    z-index: -1;
 }
 
 .userName {
-    font-size: 20px;
-    color: #EAEAEA;
+    color: var(--color-main-light);
+    margin-right: 10px;
 
-    transform: translate(0px, 2px);
+    z-index: -1;
 }
 
 </style>

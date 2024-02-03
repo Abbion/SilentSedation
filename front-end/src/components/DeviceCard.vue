@@ -132,7 +132,7 @@
     width: 200px;
     height: 320px;
     
-    border-color: #EAEAEA;
+    border-color: var(--color-main-light);
     border-radius: 20px;
     border-width: 2px;
     border-style: dashed;
@@ -155,7 +155,7 @@
     margin-top: 10px;
     margin-bottom: 10px;
 
-    border-color: #EAEAEA;
+    border-color: var(--color-main-light);
     border-radius: 100%;
     border-style: solid;
     border-width: 2px;
@@ -173,7 +173,7 @@
 }
 
 .addState > p {
-    color: #EAEAEA;;
+    color: var(--color-main-light);
     
     font-size: 25px;
 }
@@ -187,7 +187,7 @@
 .useHeader {
     height: 12%;
     
-    color: #EAEAEA;
+    color: var(--color-main-light);
 
     display: flex;
     flex-direction: row;
@@ -202,34 +202,34 @@
 }
 
 .editState > p {
-    color: #EAEAEA;
+    color: var(--color-main-light);
     
     font-size: 18px;
     margin-bottom: 10px;
 }
 
 .addIcon{
-    fill: #EAEAEA;
+    fill: var(--color-main-light);
     width: 30%;
     height: 30%;
 }
 
 .editIcon {
-    fill: #EAEAEA;
+    fill: var(--color-main-light);
     width: 50%;
     height: 50%;
 }
 
 .deleteIcon {
-    fill: #EAEAEA;
+    fill: var(--color-main-light);
 }
 
 .goBackIcon {
-    fill: #EAEAEA;
+    fill: var(--color-main-light);
 }
 
 .editState {
-    color: white;
+    color: var(--color-main-light);
     
     height: 100%;
     width: 100%;
@@ -254,7 +254,7 @@
     background-color: transparent;
     border-style: none;
     margin-bottom: 3px;
-    color: #EAEAEA;
+    color: var(--color-main-light);
 }
 
 .deviceNameInput > input:focus {
@@ -262,7 +262,7 @@
 }
 
 .deviceNameInputLine {
-    background-color: azure;
+    background-color: var(--color-main-light);
     height: 1px;
     width: 100%;
 }
@@ -280,9 +280,9 @@
     height: 25px;
 
     background-color: transparent;
-    color: #EAEAEA;
+    color: var(--color-main-light);
     
-    border-color: #EAEAEA;
+    border-color: var(--color-main-light);
     border-style: solid;
     border-radius: 15px;
     padding-left: 5px;
@@ -306,7 +306,7 @@
     justify-content: center;
     align-items: center;
 
-    border-color: #EAEAEA;
+    border-color: var(--color-main-light);
     border-width: 2px;
     border-style: solid;
 }
@@ -314,39 +314,39 @@
 .editActionsClose {
     border-radius: 0 20px 0 20px;
     margin-left: -1.8px;
-    background-color: #E1B5B5;
+    background-color: var(--color-red);
 }
 
 .editActionsClose:hover {
-    background-color: #e79c9c;
+    background-color:  var(--color-red-highlight);
 }
 
 .editActionsApply {
     border-radius: 20px 0 20px 0;
     margin-right: -1.8px;
-    background-color: #9EDDB7;
+    background-color: var(--color-green);
 }
 
-.editActionsAdd:hover{
-    background-color: #80c89d;
+.editActionsApply:hover{
+    background-color: var(--color-green-highlight);
 }
 
 .editActionIcon {
-    fill: #00040f;
+    fill: var(--color-main-dark);
     height: 40%;
     width: 40%;
 }
 
 .highlight:hover {
-    background-color: #eaeaea24;
+    background-color: var(--color-main-dark--highlight);
 }
 
 .delete {
-    background-color: #E1B5B5;
+    background-color: var(--color-red);
 }
 
 .delete:hover {
-    background-color: #e79c9c;
+    background-color: var(--color-red-highlight);
 }
 
 .deviceCodeInput {
@@ -364,7 +364,7 @@
     width: 18px;
 
     border-radius: 6px;
-    border-color: #EAEAEA;
+    border-color: var(--color-main-light);
     border-width: 2px;
     border-style: solid;
 
@@ -378,7 +378,7 @@
     width: 100%;
     background-color: transparent;
     border: none;
-    color: #EAEAEA;
+    color: var(--color-main-light);
 
     text-align: center;
 }
