@@ -41,8 +41,8 @@
                     </p>
 
                     <div class="deviceCodeInput">
-                        <div class="deviceCodeField" v-for="field in 6">
-                            <input class="deviceCodeFieldInput" type="text">
+                        <div class="deviceCodeField" v-for="(_, index) in 6">
+                            <input class="deviceCodeFieldInput" ref="inputFields" :key="index" v-model="code[index]" type="text" maxlength="1" @keydown="codeDigitEntered($event as KeyboardEvent, index)" @input="handleCodeInput($event as InputEvent, index)">
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,8 @@
     import GoBackIcon from './icons/GoBackIcon.vue'
     import { ref } from 'vue'
 
-    const code = [0, 0, 0, 0, 0, 0];
+    let code: (number | null)[] = new Array(6).fill(null);
+    const inputFields = ref<HTMLInputElement[]>([]);
 
     enum CardState {
         Add,
@@ -123,6 +124,77 @@
 
         if (cardContainerHTML.value) {
             cardContainerHTML.value.style.borderStyle = "dashed";   
+        }
+    }
+
+    function codeDigitEntered(event : KeyboardEvent, index : number) {   
+        const controlKeys = ["Backspace", "ArrowLeft", "ArrowRight"];
+        const isNumber = /^[0-9]$/.test(event.key);
+
+        if (!isNumber && !controlKeys.includes(event.key)) {
+            event.preventDefault();
+            return;
+        }
+
+        //Handle controlKeys
+        if (isNumber){
+            return;
+        }
+
+        const goBack = (index : number) => {
+            if (index > 0) {
+                inputFields.value[index - 1].focus();
+            }
+        }
+        const goNext = (index : number) => {
+            if (index < inputFields.value.length - 1) {
+                inputFields.value[index + 1].focus();
+            }
+        }
+
+        const isEmpty = inputFields.value[index].value === '';
+
+        if (isEmpty)
+        {
+            if (event.key === controlKeys[0]) {
+                goBack(index);
+            }
+            else if (event.key === controlKeys[1]) {
+                goBack(index);
+                event.preventDefault();
+            }
+            else if (event.key === controlKeys[2]) {
+                goNext(index);
+                event.preventDefault();
+            }
+        }
+        else
+        {
+            const isCursorAtFront = inputFields.value[index].selectionStart === 0;    
+
+            if (isCursorAtFront && event.key === controlKeys[1]) {
+                goBack(index);
+                event.preventDefault();
+            }
+
+            if (!isCursorAtFront && event.key === controlKeys[2]) {
+                goNext(index);
+                event.preventDefault();
+            }
+        }
+    }
+
+    function handleCodeInput(event : InputEvent, index : number) {
+        if (event.data == null) {
+            code[index] = null;
+            return;
+        }        
+        
+        const digit = parseInt(event.data!);
+        code[index] = digit;
+
+        if (index < inputFields.value.length - 1) {
+            inputFields.value[index + 1].focus();
         }
     }
 </script>
