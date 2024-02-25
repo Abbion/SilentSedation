@@ -38,7 +38,7 @@ import LoginInput from './components/LoginInput.vue'
 import LoginActions from './components/LoginActions.vue'
 
 import UserDash from './components/UserDash.vue'
-import DeviceCard from './components/DeviceCard.vue'
+import DeviceCard from './components/deviceCard/DeviceCard.vue'
 
 import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
@@ -88,9 +88,6 @@ import type { isMetaProperty } from 'typescript';
   justify-content: center;
   width: 75%;
 }
-
-
-
 
 .loginContainer {
   width: 600px;
