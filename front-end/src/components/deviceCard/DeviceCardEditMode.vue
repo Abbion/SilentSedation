@@ -1,5 +1,5 @@
 <template>
-    <div class="editOptions">
+    <div ref="editiOptionsDivElement" class="editOptions">
         <div class="deviceNameInput">
             <input v-model="deviceName" type="text" placeholder="device name"/>
             <div ref="deviceNameLineElement" class="deviceNameInputLine"></div>
@@ -49,7 +49,7 @@
 <script setup lang="ts">
     import CheckIcon from '../icons/IconCheck.vue';
     import DeleteIcon from '../icons/DeleteIcon.vue'
-    import { ref, defineEmits, onMounted } from 'vue'
+    import { ref, defineEmits, onUpdated } from 'vue'
 
     interface Option {
         label: string;
@@ -68,6 +68,20 @@
     const deviceCodeElements = ref<HTMLInputElement[]>([]);
 
     const deviceNameLineElement = ref<HTMLDivElement>();
+    const editiOptionsDivElement = ref<HTMLDivElement>();
+
+    onUpdated(() => {
+        if (editiOptionsDivElement.value) {
+            const hasScrollBar = editiOptionsDivElement.value.offsetHeight < editiOptionsDivElement.value.scrollHeight;
+            
+            if (hasScrollBar) {
+                editiOptionsDivElement.value.style = "padding-right: calc(8% - 5px)";
+            }
+            else {
+                editiOptionsDivElement.value.style = "padding-right: 8%";
+            }
+        }
+    });
 
     function codeDigitEntered(event : KeyboardEvent, index : number) {   
         const controlKeys = ["Backspace", "ArrowLeft", "ArrowRight"];
@@ -150,6 +164,23 @@
         if (deviceTypeElement.value !== undefined) {
             deviceTypeElement.value.value = options[0].value;
         }
+
+        errorMessages.value = [];
+
+        if (deviceNameLineElement.value !== undefined)
+            deviceNameLineElement.value.classList.remove("errorMarkerBg");
+
+        if (deviceTypeElement.value !== undefined)
+            deviceTypeElement.value.classList.remove("errorOutline");
+
+        for (var i = 0; i < deviceCodeElements.value.length; i++) {
+            const parentDiv = deviceCodeElements.value[i].parentElement;
+
+            if (parentDiv === null)
+                continue;
+
+            parentDiv.classList.remove("errorOutline");
+        }
     }
 
     function cancel() {
@@ -163,7 +194,9 @@
         console.log(errorMessages);
         
 
-       // emit('addButtonClicked');
+        if (isDataInputedCorrectely) {
+            emit('addButtonClicked');
+        }
     }
 
     function checkIfDataIsInputed() {
@@ -185,7 +218,7 @@
             
             if (isNameInputCorrect) {
                 //TODO Check if name is in database
-                errorMessages.value.push("This device name already exists in your devices!");
+                //errorMessages.value.push("This device name already exists in your devices!");
             }
 
             if (deviceNameLineElement.value !== undefined) {
@@ -276,9 +309,24 @@
 
 <style scoped>
     .editOptions{
-        height: 85%;
-        max-width: 80%;
-        margin: auto;
+        height: 80%;
+        padding-left: 8%;
+        padding-right: 8%;
+
+        margin-right: 4%;
+        margin-left: 4%;
+
+        overflow-y: auto;
+
+    }
+
+    ::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--color-main-light);
+        border-radius: 10px;
     }
 
     .deviceNameInput{
@@ -421,10 +469,11 @@
 
     .errorMessages {
         padding-top: 15px;
-        margin-left: 15px;
+        margin-left: 18px;
+        max-height: 100px;
     }
     .errorMessage {
         color: var(--color-error);
-        font-size: 22px;
+        font-size: 14px;
     }
 </style>
