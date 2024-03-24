@@ -50,15 +50,10 @@
     import CheckIcon from '../icons/IconCheck.vue';
     import DeleteIcon from '../icons/DeleteIcon.vue'
     import { ref, defineEmits, onUpdated } from 'vue'
+    import type { CardData } from '../common/Interfaces'
+    import { DeviceTypeUtils } from '../common/EnumUtils';
 
-    interface Option {
-        label: string;
-        value: string;
-    }
-
-    const options: Option[] = [
-        { label: 'electric shocker', value: 'e-shock' },
-    ];
+    const options = DeviceTypeUtils.CreateLabelsAndValues();
     var errorMessages = ref<string[]>();
 
     const emit = defineEmits(['addButtonClicked', 'cancelButtonClicked']);
@@ -75,10 +70,10 @@
             const hasScrollBar = editiOptionsDivElement.value.offsetHeight < editiOptionsDivElement.value.scrollHeight;
             
             if (hasScrollBar) {
-                editiOptionsDivElement.value.style = "padding-right: calc(8% - 5px)";
+                editiOptionsDivElement.value.style.paddingRight = "calc(8% - 5px)";
             }
             else {
-                editiOptionsDivElement.value.style = "padding-right: 8%";
+                editiOptionsDivElement.value.style.paddingRight = "8%";
             }
         }
     });
@@ -191,11 +186,22 @@
 
     function add() {
         var isDataInputedCorrectely = checkIfDataIsInputed();
-        console.log(errorMessages);
-        
 
-        if (isDataInputedCorrectely) {
-            emit('addButtonClicked');
+        var index = 0;
+        if (deviceTypeElement.value) {
+            index = deviceTypeElement.value.selectedIndex;
+        }
+
+        if (isDataInputedCorrectely) {            
+            const info : CardData = { 
+                name: deviceName.value.toString(),
+                deviceType: DeviceTypeUtils.IndexToDeviceType(index),
+                code: deviceCodeElements.value.filter(element => element).map(element => { return parseInt(element.value)}),
+             };
+
+             console.log(info);
+
+            emit('addButtonClicked', info);
         }
     }
 
@@ -368,6 +374,7 @@
         
         border-color: var(--color-main-light);
         border-style: solid;
+        border-width: 1px;
         border-radius: 15px;
         padding-left: 5px;
     }
@@ -476,4 +483,4 @@
         color: var(--color-error);
         font-size: 14px;
     }
-</style>
+</style>../common/Interfaces.ts../common/Enums

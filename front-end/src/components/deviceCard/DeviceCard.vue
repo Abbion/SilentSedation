@@ -14,7 +14,7 @@
         </div>
 
         <div v-show="state == CardState.Edit" class="editState">
-            <EditMode @addButtonClicked="goToUseState" @cancelButtonClicked="goToAddState"></EditMode>
+            <EditMode @addButtonClicked="handleNewData" @cancelButtonClicked="goToAddState"></EditMode>
         </div>
 
         <div v-show="state == CardState.Options" class="editState cardCenter">
@@ -31,6 +31,9 @@
     import AddIcon from '../icons/IconAdd.vue';
     import { ref } from 'vue'
 
+    import type { CardData } from '../common/Interfaces'
+    import { DeviceType } from '../common/Enums';
+
     enum CardState {
         Add,
         Edit,
@@ -39,7 +42,8 @@
     }
 
     var state = ref(CardState.Add);
-    var cardContainerHTML = ref<HTMLDivElement | null>(null);
+    var cardContainerHTML = ref<HTMLDivElement>();
+    var cardData: CardData = { name: "", deviceType: DeviceType.None, code: [] }
 
     function goToEditState() {        
         state.value = CardState.Edit;
@@ -71,6 +75,11 @@
         if (cardContainerHTML.value) {
             cardContainerHTML.value.style.borderStyle = "dashed";   
         }
+    }
+
+    function handleNewData(data : CardData) {
+        cardData = data;
+        goToUseState();
     }
 
     
