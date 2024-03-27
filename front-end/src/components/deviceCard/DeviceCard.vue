@@ -1,35 +1,34 @@
+//Rework Done
 <template>
-    <div class="cardContainer cardCenter" ref="cardContainerHTML">
-        <div v-show="state == CardState.Add" class="addState highlight cardCenter cursorPointer" @click="goToEditState">
-            <p class="preventSelect">
-                new device
-            </p>
-            <div class="roundButton cursorPointer">
-                <AddIcon class="addIcon"/>
-            </div>
-        </div>
+    <div class="cardContainer centerContentVertical"
+         :class="[ state == CardState.Add ? ['cardContainerDashed', 'cursorPointer', 'highlightElement'] : 'cardContainerSolid' ]"
+          ref="cardContainerHTML"
+          @click="CardContainerClick">
+    
+    <CardAddState v-show="state == CardState.Add"></CardAddState>
 
-        <div v-show="state == CardState.Use" class="useState">
-            <UseMode @optionsWidgetClicked="goToOptionState"></UseMode>
-        </div>
+    <CardEditState v-show="state == CardState.Edit" 
+                  @cardEditAddButtonClicked="HandleEditStateData" 
+                  @cardEditCancelButtonClicked="HandleEditStateCancel"
+                 :cardDataProp="cardData"></CardEditState>
 
-        <div v-show="state == CardState.Edit" class="editState">
-            <EditMode @addButtonClicked="handleNewData" @cancelButtonClicked="goToAddState"></EditMode>
-        </div>
+    <CardUseState v-show="state == CardState.Use" @cardOptionsClicked="GoToOptionState"></CardUseState>
 
-        <div v-show="state == CardState.Options" class="editState cardCenter">
-           <OptionMode @editButtonClicked="goToEditState" @deleteButtonClicked="goToAddState" @backButtonClicked="goToUseState"></OptionMode> 
-        </div>
+    <CardOptionState v-show="state == CardState.Options" 
+                    @cardOptionsEditButtonClicked="GoToEditState" 
+                    @cardOptionsDeleteButtonClicked="HandleDeleteCard"
+                    @cardOptionsReturnButtonClicked="GoToUseState"></CardOptionState>
+
     </div>
 </template>
 
 <script setup lang="ts">
-    import EditMode from './DeviceCardEditMode.vue'
-    import OptionMode from './DeviceCardOptionMode.vue'
-    import UseMode from './DeviceCardUseMode.vue'
+    import CardAddState from './CardAddState.vue'
+    import CardEditState from './CardEditState.vue'
+    import CardOptionState from './CardOptionState.vue'
+    import CardUseState from './CardUseState.vue'
 
-    import AddIcon from '../icons/IconAdd.vue';
-    import { ref } from 'vue'
+    import { ref, defineEmits, onMounted } from 'vue'
 
     import type { CardData } from '../common/Interfaces'
     import { DeviceType } from '../common/Enums';
@@ -41,157 +40,100 @@
         Use
     }
 
-    var state = ref(CardState.Add);
-    var cardContainerHTML = ref<HTMLDivElement>();
-    var cardData: CardData = { name: "", deviceType: DeviceType.None, code: [] }
+    const emit = defineEmits(['cardCreated', 'cardRemoved']);
+    const props = defineProps<{
+        cardId: number
+    }>();
 
-    function goToEditState() {        
-        state.value = CardState.Edit;
+    let state = ref(CardState.Add);
+    let cardContainerHTML = ref<HTMLDivElement>();
+    let cardData : CardData = { id: -1, name: "", deviceType: DeviceType.None, code: [] };
+    let cancelFromEdit = false;
 
-        if (cardContainerHTML.value) {
-            cardContainerHTML.value.style.borderStyle = "solid";
+    onMounted(()=>{
+        cardData.id = props.cardId;        
+    });
+
+    function CardContainerClick() {
+        if (cancelFromEdit) {
+            cancelFromEdit = false;
+            return;
+        }
+
+        if (state.value == CardState.Add) {
+            GoToEditState();
         }
     }
 
-    function goToAddState() {
+    function GoToAddState() {
         state.value = CardState.Add;
-
-        if (cardContainerHTML.value) {
-            cardContainerHTML.value.style.borderStyle = "dashed";   
-        }
     }
 
-    function goToOptionState() {
+    function GoToEditState() {        
+        state.value = CardState.Edit;
+    }
+
+    function GoToOptionState() {
         state.value = CardState.Options;
+        
     }
 
-    function goToUseState() {
+    function GoToUseState() {
         state.value = CardState.Use;
     }
 
     function DeleteCard() {
         state.value = CardState.Add;
+    }
 
-        if (cardContainerHTML.value) {
-            cardContainerHTML.value.style.borderStyle = "dashed";   
+    function HandleEditStateData(data : CardData) {
+        cardData = data;        
+        GoToUseState();
+        emit('cardCreated');
+    }
+    
+    function HandleEditStateCancel() {        
+        if (cardData.name.length < 1) {
+            cancelFromEdit = true;
+            GoToAddState();      
+        }
+        else {
+            GoToUseState();
         }
     }
 
-    function handleNewData(data : CardData) {
-        cardData = data;
-        goToUseState();
-    }
+    function HandleDeleteCard() {
+        cardData.name = "";
+        cardData.deviceType = DeviceType.None;
+        cardData.code = [];
 
-    
+        cancelFromEdit = true;
+        emit('cardRemoved', cardData.id);
+    }
 </script>
 
 <style>
-.cardContainer {
-    width: 200px;
-    height: 320px;
-    
-    border-color: var(--color-main-light);
-    border-radius: 20px;
-    border-width: 2px;
-    border-style: dashed;
+    .cardContainer {
+        width: 200px;
+        height: 320px;
+        
+        border-color: var(--color-main-light);
+        border-radius: 20px;
+        border-width: 2px;
 
-    margin-left: 20px;
-    margin-right: 20px;
-}
+        margin-left: 20px;
+        margin-right: 20px;
+    }
 
-.cardCenter {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
+    .highlightElement:hover {
+    background-color: --color-main-dark--highlight;
+    }
 
-.roundButton {
-    width: 60px;
-    height: 60px;
+    .cardContainerDashed {
+        border-style: dashed;
+    }
 
-    margin-top: 10px;
-    margin-bottom: 10px;
-
-    border-color: var(--color-main-light);
-    border-radius: 100%;
-    border-style: solid;
-    border-width: 2px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.addState {
-    height: 100%;
-    width: 100%;
-    border-radius: 18px;
-}
-
-.addState > p {
-    color: var(--color-main-light);
-    
-    font-size: 25px;
-}
-
-.useState {
-    
-    height: 100%;
-    width: 100%;
-}
-
-.editState > p {
-    color: var(--color-main-light);
-    
-    font-size: 18px;
-    margin-bottom: 10px;
-}
-
-.addIcon{
-    fill: var(--color-main-light);
-    width: 30%;
-    height: 30%;
-}
-
-.editIcon {
-    fill: var(--color-main-light);
-    width: 50%;
-    height: 50%;
-}
-
-.deleteIcon {
-    fill: var(--color-main-light);
-}
-
-.goBackIcon {
-    fill: var(--color-main-light);
-}
-
-.editState {
-    color: var(--color-main-light);
-    
-    height: 100%;
-    width: 100%;
-
-    margin-top: 15px;
-
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.highlight:hover {
-    background-color: var(--color-main-dark--highlight);
-}
-
-.delete {
-    background-color: var(--color-red);
-}
-
-.delete:hover {
-    background-color: var(--color-red-highlight);
-}
-
+    .cardContainerSolid {
+        border-style: solid;
+    }
 </style>

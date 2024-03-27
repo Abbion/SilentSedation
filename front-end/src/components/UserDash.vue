@@ -1,5 +1,5 @@
 <template>
-    <div class="dashContainer" :class="{dashContainerClose: !dashState, dashContainerOpen: dashState}" @click="someMethod">
+    <div class="dashContainer" :class="{dashContainerClose: !dashState, dashContainerOpen: dashState}">
         <div id="userInfo" class="userAccount cursorPointer" @click="toggleMore">
             <div class="userIconBox">
                 <userIcon class="userIcon" />
@@ -83,12 +83,8 @@
     width: 100%;
     height: 28px;
 
-    background-color: var(--color-red);
+    background-color: red;
     border-radius: 0 0 12.5px 12.5px;
-}
-
-.logOut:hover {
-    background-color: var(--color-red-highlight);
 }
 
 .logOut > p {

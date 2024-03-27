@@ -1,9 +1,10 @@
 import { DeviceType } from './Enums'
 
 export interface CardData {
+    id: number;
     name: string;
     deviceType: DeviceType;
-    code: Number[];
+    code: number[];
 }
 
 export interface Option {

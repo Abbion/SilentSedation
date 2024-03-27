@@ -21,41 +21,41 @@
 </script>
 
 <style scoped>
-p {
-  margin: 0;
-  padding: 0;
+  p {
+    margin: 0;
+    padding: 0;
 
-  margin-bottom: 0.5em;
-  margin-left: 0.5em;
+    margin-bottom: 0.5em;
+    margin-left: 0.5em;
 
-  color: #EAEAEA;
-}
+    color: #EAEAEA;
+  }
 
-input {
-  margin: 0;
-  padding: 0;
+  input {
+    width: 24em;
+    height: 2.5em;
 
-  margin-bottom: 1em;
+    margin: 0;
+    padding: 0;
 
-  padding-left: 0.5em;
-  padding-right: 0.5em;
+    margin-bottom: 1em;
 
-  width: 24em;
-  height: 2.5em;
-  
-  border-radius: 10px;
-  background-color: transparent;
-  
-  border-style: solid;
-  border-color: #eaeaeaa2;
-  border-width: 1px;
+    padding-left: 0.5em;
+    padding-right: 0.5em;
 
-  color: #EAEAEA;
-}
+    
+    border-radius: 10px;
+    background-color: transparent;
+    
+    border-style: solid;
+    border-color: #eaeaeaa2;
+    border-width: 1px;
 
-input:focus{
-  outline: none;
-  border-color: #EAEAEA;
-}
+    color: #EAEAEA;
+  }
 
+  input:focus{
+    outline: none;
+    border-color: #EAEAEA;
+  }
 </style>

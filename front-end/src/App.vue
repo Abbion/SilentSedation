@@ -25,8 +25,7 @@
 
     </div>
     <div class="content">
-      <DeviceCard/>
-      <DeviceCard/>
+      <DeviceCard v-for="(id) in cardsId" :key="id" :cardId="id" @cardCreated="AddNewCard" @cardRemoved="RemoveCard"/>
     </div>
     
   </div>
@@ -34,15 +33,32 @@
 </template>
 
 <script setup lang="ts">
-import LoginInput from './components/LoginInput.vue'
-import LoginActions from './components/LoginActions.vue'
+  import LoginInput from './components/LoginInput.vue'
+  import LoginActions from './components/LoginActions.vue'
 
-import UserDash from './components/UserDash.vue'
-import DeviceCard from './components/deviceCard/DeviceCard.vue'
+  import UserDash from './components/UserDash.vue'
+  import DeviceCard from './components/deviceCard/DeviceCard.vue'
+  import { ref } from 'vue';
 
-import HelloWorld from './components/HelloWorld.vue'
-import TheWelcome from './components/TheWelcome.vue'
-import type { isMetaProperty } from 'typescript';
+  let nextCardId = 1;
+  let cardsId = ref<number[]>([0]);
+
+  function AddNewCard() {
+    cardsId.value.push(nextCardId);
+    nextCardId++;
+  }
+
+  function RemoveCard(id: number) {
+    const index = cardsId.value.indexOf(id);
+
+    console.log("id: ", id, " index: ", index);
+    
+
+    if (index !== -1) {
+      cardsId.value.splice(index, 1);
+    }
+  }
+
 </script>
 
 <style scoped>

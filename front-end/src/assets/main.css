@@ -1,9 +1,5 @@
 :root {
   --color-error: #db5656;
-  --color-red: #E1B5B5;
-  --color-red-highlight: #E79C9C;
-  --color-green: #9EDDB7;
-  --color-green-highlight: #7ff3ae;
   --color-main-dark: #00040F;
   --color-main-dark--highlight: #EAEAEA24;
   --color-main-light: #EAEAEA;
@@ -25,8 +21,27 @@ body {
   user-select: none; /* Standard syntax */
 }
 
+.centerContentVertical {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.centerContentHorizontal {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
 .cursorPointer:hover {
   cursor: pointer;
+}
+
+.highlightElement:hover {
+  background-color: var(--color-main-dark--highlight);
 }
 
 * {

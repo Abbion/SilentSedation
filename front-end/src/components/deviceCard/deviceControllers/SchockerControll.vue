@@ -1,3 +1,4 @@
+//Rework Done
 <template>
     <div class="controllIcon">
         <div class="iconCircleFrame">
@@ -33,19 +34,19 @@
 </template>
 
 <script setup lang="ts">
-    import ThunderBoltIcon from '../icons/ThunderBoltIcon.vue';
-    import AddIcon from '../icons/IconAdd.vue';
-    import MinusIcon from '../icons/IconMinus.vue';
+    import ThunderBoltIcon from '../../icons/ThunderBoltIcon.vue';
+    import AddIcon from '../../icons/AddIcon.vue';
+    import MinusIcon from '../../icons/MinusIcon.vue';
     import { ref } from 'vue'
 
-    var powerLevel = ref(5);
-    var decreasePowerClicked = ref(false);
-    var increasePowerClicked = ref(false);
-    var mouseDownOnDecreaseButton = false;
-    var mouseDownOnIncreaseButton = false;
+    let powerLevel = ref(5);
+    let decreasePowerClicked = ref(false);
+    let increasePowerClicked = ref(false);
+    let mouseDownOnDecreaseButton = false;
+    let mouseDownOnIncreaseButton = false;
 
-    var zapButtonClicked = ref(false);
-    var mouseDonwOnZapButton = false;
+    let zapButtonClicked = ref(false);
+    let mouseDonwOnZapButton = false;
 
     function DecreasePowerDown() {
         decreasePowerClicked.value = true;
@@ -108,9 +109,9 @@
 </script>
 
 <style scoped>
-    .controllIcon{
-        width: 100%;
+    .controllIcon {
         height: 65px;
+        width: 100%;
     }
 
     .iconCircleFrame {
@@ -133,17 +134,16 @@
 
     .schockerThunderBoltIcon {
         fill: var(--color-main-light);
-        
     }
 
-    .powerControll{
-        width: 100%;
+    .powerControll {
         height: 95px;
+        width: 100%;
     }
 
     .controllTitle {
-        height: 27px;
         color: var(--color-main-light);
+        height: 27px;
 
         display: flex;
         flex-direction: column;
@@ -182,18 +182,20 @@
     }
 
     .powerControllSelectorChangePowerButton:hover {
-        cursor: pointer;
         background-color: var(--color-main-dark--highlight);
+        cursor: pointer;
     }
 
     .powerControllSelectorIconStyle {
         fill: var(--color-main-light);
-        width: 40%;
+
         height: 40%;
+        width: 40%;
     }
 
     .powerControllSelectorPowerValue {
         color: var(--color-main-light);
+
         height: 50px;
         width: 50px;
 
@@ -211,8 +213,8 @@
     }
 
     .actionControll {
-        width: 100%;
         height: 100px;
+        width: 100%;
     }
 
     .actionControllButtons {
@@ -225,9 +227,10 @@
     }
 
     .actionControllZapButton {
-        width: 40px;
-        height: 50px;
         background-color: transparent;
+
+        height: 50px;
+        width: 40px;
 
         border-style: solid;
         border-color: var(--color-main-light);
@@ -241,8 +244,8 @@
     }
 
     .actionControllZapButton:hover {
-        cursor: pointer;
         background-color: var(--color-main-dark--highlight);
+        cursor: pointer;
     }
     
     .actionControllZapButton > .schockerThunderBoltIcon {

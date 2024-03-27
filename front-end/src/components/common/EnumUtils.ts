@@ -9,7 +9,7 @@ export const DeviceTypeUtils = {
         ];
     },
 
-    IndexToDeviceType(index : Number) : DeviceType {
+    IndexToDeviceType(index : number) : DeviceType {
         switch (index) {
             case 0:
                 return DeviceType.ElectricShocker;
