@@ -26,7 +26,9 @@
     import UserIcon from './icons/IconUser.vue'
     import LogOutIcon from './icons/LogOutIcon.vue'
     import { ref } from 'vue'
+    import { useRouter } from 'vue-router';
 
+    const router = useRouter();
     let dashState = ref(false)
     let cursorInsideDash = false;
 
@@ -35,7 +37,7 @@
     }
 
     function LogOut() {
-        console.log("LogOut");
+        router.replace('/')
     }
 
     document.onmousedown = function(e) {        

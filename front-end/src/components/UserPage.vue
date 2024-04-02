@@ -6,7 +6,7 @@
         </div>
 
         <div class="userPageInfo">
-            <p class="preventSelect" @click="AddNewCard">
+            <p class="preventSelect">
                 Devices
             </p>
 

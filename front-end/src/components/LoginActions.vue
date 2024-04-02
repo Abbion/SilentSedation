@@ -11,7 +11,7 @@
             </div>
         </div>
 
-        <button>
+        <button @click="TryToLoginUser">
             log in
         </button>
     </div>
@@ -21,11 +21,19 @@
     import CheckIcon from './icons/CheckIcon.vue'
 
     import { ref } from 'vue'
-    let isChecked = ref(true);
+    import { useRouter } from 'vue-router'
+
+    const router = useRouter();
+    let isChecked = ref(false);
 
     function SwitchCheck() {
         isChecked.value = !isChecked.value;  
     }
+
+    function TryToLoginUser() {
+        router.replace('/userPage');
+    }
+
 </script>
 
 <style scoped>
