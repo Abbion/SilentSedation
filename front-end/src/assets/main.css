@@ -6,13 +6,26 @@
 }
 
 body {
-  margin:auto;
-  padding: 0;
-  
   background-color: var(--color-main-dark);
-  max-width: 1280px;
+
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 
   font-family: 'Segoe UI Light';
+  overflow-y: scroll;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-main-light);
+  border-radius: 10px;
 }
 
 .preventSelect {

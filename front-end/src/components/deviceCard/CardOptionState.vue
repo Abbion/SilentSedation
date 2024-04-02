@@ -2,7 +2,7 @@
 <template>
     <div class="centerContentVertical">
         <p class="preventSelect">
-            device name
+            {{ cardName }}
         </p>
         <div class="roundButton highlightElement cursorPointer" @click="$emit('cardOptionsEditButtonClicked')">
             <EditIcon class="editIcon"/>
@@ -20,6 +20,12 @@
     import EditIcon from '../icons/EditIcon.vue'
     import GoBackIcon from '../icons/GoBackIcon.vue'
     import TrashIcon from '../icons/TrashIcon.vue'
+
+    import { defineProps } from 'vue'
+
+    defineProps<{
+        cardName: string
+    }>();
 </script>
 
 <style scoped>

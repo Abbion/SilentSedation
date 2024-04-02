@@ -3,7 +3,7 @@
     <div>
         <div class="useHeader">
             <p class="preventSelect">
-                Title
+                {{ cardName }}
             </p>
             <div class="useOptions cursorPointer preventSelect" @click="$emit('cardOptionsClicked')">...</div>
         </div>
@@ -15,6 +15,11 @@
 
 <script setup lang="ts">
     import SchockerControll from './deviceControllers/SchockerControll.vue'
+    import { defineProps } from 'vue'
+
+    defineProps<{
+        cardName: string
+    }>();
 </script>
 
 <style scoped>

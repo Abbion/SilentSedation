@@ -12,9 +12,10 @@
                   @cardEditCancelButtonClicked="HandleEditStateCancel"
                  :cardDataProp="cardData"></CardEditState>
 
-    <CardUseState v-show="state == CardState.Use" @cardOptionsClicked="GoToOptionState"></CardUseState>
+    <CardUseState v-show="state == CardState.Use" :cardName="cardData.name" @cardOptionsClicked="GoToOptionState"></CardUseState>
 
-    <CardOptionState v-show="state == CardState.Options" 
+    <CardOptionState v-show="state == CardState.Options"
+                    :cardName="cardData.name"
                     @cardOptionsEditButtonClicked="GoToEditState" 
                     @cardOptionsDeleteButtonClicked="HandleDeleteCard"
                     @cardOptionsReturnButtonClicked="GoToUseState"></CardOptionState>
@@ -87,9 +88,14 @@
     }
 
     function HandleEditStateData(data : CardData) {
+        var firstEdit = cardData.name === "" ? true : false;
+
         cardData = data;        
         GoToUseState();
-        emit('cardCreated');
+
+        if (firstEdit) {
+            emit('cardCreated');
+        }
     }
     
     function HandleEditStateCancel() {        
@@ -121,8 +127,9 @@
         border-radius: 20px;
         border-width: 2px;
 
-        margin-left: 20px;
-        margin-right: 20px;
+        margin-left: 18px;
+        margin-right: 18px;
+        margin-bottom: 36px;
     }
 
     .highlightElement:hover {

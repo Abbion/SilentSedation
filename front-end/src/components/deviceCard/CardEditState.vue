@@ -508,13 +508,4 @@
         
         font-size: 14px;
     }
-
-    ::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background: var(--color-main-light);
-        border-radius: 10px;
-    }
 </style>

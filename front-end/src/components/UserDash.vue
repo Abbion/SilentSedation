@@ -1,6 +1,7 @@
+//Rework Done
 <template>
-    <div class="dashContainer" :class="{dashContainerClose: !dashState, dashContainerOpen: dashState}">
-        <div id="userInfo" class="userAccount cursorPointer" @click="toggleMore">
+    <div class="dashContainer" :class="[ dashState ? 'dashContainerOpen' : 'dashContainerClose']" @mouseenter="cursorInsideDash = true" @mouseleave="cursorInsideDash = false">
+        <div id="userInfo" class="userAccount cursorPointer" @click="ToggleMore">
             <div class="userIconBox">
                 <userIcon class="userIcon" />
             </div>
@@ -11,137 +12,150 @@
                 Wiktor
             </div>
         </div>
-        <div id="logOut" v-show="dashState" class="logOut cursorPointer preventSelect" @click="logOut">
+        <div class="line" v-show="dashState"></div>
+        <div id="logOut" class="logOut highlightElement cursorPointer preventSelect" v-show="dashState" @click="LogOut">
+            <LogOutIcon class="logOutIcon"/>
             <p id="logOutText">
                 log out
             </p>
         </div>
     </div>
-
-
 </template>
 
 <script setup lang="ts">
     import UserIcon from './icons/IconUser.vue'
+    import LogOutIcon from './icons/LogOutIcon.vue'
     import { ref } from 'vue'
 
-    var dashState = ref(false)
-    var dashClicked = false;
+    let dashState = ref(false)
+    let cursorInsideDash = false;
 
-    function toggleMore() {
+    function ToggleMore() {
         dashState .value= !dashState.value;
     }
 
-    function logOut() {
+    function LogOut() {
         console.log("LogOut");
     }
 
-    document.onmousedown = function(e) {
-        const attr = e.target.attributes;
-        if (attr) {
-            const idAttr = attr['id'];
-            if (idAttr){
-                const value = idAttr.value;
-                //This is pain XD
-                if (value == "userInfo" || value == "logOut" || value == "logOutText"){
-                    return;
-                }
-            }
-        }
-        
-        if (dashState.value) {
+    document.onmousedown = function(e) {        
+        if (!cursorInsideDash) {
             dashState .value = false;
         }
     }
-
 </script>
 
 <style scoped>
-.dashContainer {    
-    border-color: var(--color-main-light);
-    border-width: 2px;
-    border-style: solid;
+    .dashContainer {
+        margin-left: 35px;
+        margin-top: 30px;
 
-    border-radius: 15px;
+        border-color: var(--color-main-light);
+        border-width: 2px;
+        border-style: solid;
+        border-radius: 15px;
 
-    display: flex;
-    flex-direction: column;
-    align-items: space;
-}
+        display: flex;
+        flex-direction: column;
+        align-items: space;
 
-.userAccount {
-    width: 100%;
-    height: 28px;
+        font-size: 18px;
+    }
 
-    display: flex;
-    flex-direction: row;
-    align-items: center;
+    .dashContainerClose {
+        height: 28px;
+        width: 60px;
+    }
 
-}
+    .dashContainerOpen {
+        height: 57px;
+        width: 130px;
+    }
 
-.logOut {
-    width: 100%;
-    height: 28px;
+    .userAccount {
+        height: 28px;
+        width: 100%;
 
-    background-color: red;
-    border-radius: 0 0 12.5px 12.5px;
-}
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
 
-.logOut > p {
-    margin-left: 15px;
-}
+    .userIconBox {
+        background-color: var(--color-main-light);
 
-.dashContainerClose {
-    width: 60px;
-    height: 28px;
-}
+        height: 20px;
+        width: 20px;
 
-.dashContainerOpen {
-    width: fit-content;
-    height: 55px;
-}
+        margin-left: 5px;
+        margin-right: 7px;
 
-.userIconBox{
-    width: 20px;
-    height: 20px;
-    background-color: var(--color-main-light);
-    border-radius: 100%;
+        border-radius: 100%;
 
-    margin-left: 5px;
-    margin-right: 7px;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
 
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
+        z-index: -1;
+    }
 
-    z-index: -1;
-}
+    .userIcon {
+        fill: var(--color-main-dark);
 
-.userIcon{
-    width: 80%;
-    height: 80%;
+        height: 80%;
+        width: 80%;
 
-    fill: var(--color-main-dark);
-    margin-top: 4px;
+        margin-top: 4px;
 
-    z-index: -1;
-}
+        z-index: -1;
+    }
 
-.more {
-    font-size: 20px;
-    color: var(--color-main-light);;
+    .more {
+        color: var(--color-main-light);
 
-    transform: translate(0px, -2px);
+        transform: translate(0px, -2px);
 
-    z-index: -1;
-}
+        font-size: 20px;
+        z-index: -1;
+    }
 
-.userName {
-    color: var(--color-main-light);
-    margin-right: 10px;
+    .userName {
+        color: var(--color-main-light);
 
-    z-index: -1;
-}
+        margin-right: 10px;
+        z-index: -1;
+    }
 
+    .line {
+        background-color: var(--color-main-light);
+        opacity: 50%;
+
+        height: 2px;
+        width: 100%;
+
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .logOut {
+        height: 28px;
+        width: 100%;
+
+        border-radius: 0 0 12.5px 12.5px;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .logOut > p {
+        color: var(--color-main-light);
+        margin-left: 5px;
+    }
+
+    .logOutIcon {
+        stroke: var(--color-main-light);
+        margin-left: 3px;
+    }
 </style>
