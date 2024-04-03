@@ -1,11 +1,13 @@
 version: '3'
 services:
-    app:
+    vue-app:
       build:
         context: .
         dockerfile: ./docker/vue/Dockerfile
       ports:
         - 8080:80
+      volumes:
+        - ./front-end/src:/app/src
       
     nginx:
       image: nginx:alpine
@@ -14,4 +16,4 @@ services:
       ports:
         - 80:80
       depends_on:
-        - app
+        - vue-app
