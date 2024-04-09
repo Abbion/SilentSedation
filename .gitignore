@@ -44,3 +44,6 @@ coverage
 *.sw?
 
 *.tsbuildinfo
+
+back-end/target/
+back-end/assets/private-keys.json

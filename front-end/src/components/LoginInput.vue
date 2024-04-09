@@ -4,7 +4,7 @@
         <p class="preventSelect">
             {{ props.inputTitle }}
         </p>
-        <input :type="inputType">
+        <input :type="inputType" v-model="value">
     </div>
 </template>
 
@@ -18,6 +18,7 @@
         hideInput: false
     });
 
+    let value = defineModel<String>();
     const inputType = props.hideInput ? 'password' : 'text';
 </script>
 

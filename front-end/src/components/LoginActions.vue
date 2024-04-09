@@ -1,4 +1,3 @@
-//Rework Done
 <template>
     <div class="loginActions">
         <div class="namedCheckBox">
@@ -11,9 +10,9 @@
             </div>
         </div>
 
-        <button @click="TryToLoginUser">
+        <div class="logInButton cursorPointer" @click="$emit('logInButtonClicked')">
             log in
-        </button>
+        </div>
     </div>
 </template>
 
@@ -21,25 +20,21 @@
     import CheckIcon from './icons/CheckIcon.vue'
 
     import { ref } from 'vue'
-    import { useRouter } from 'vue-router'
 
-    const router = useRouter();
+    //Needs to be used when defineModel is used
+    defineEmits(['logInButtonClicked']);
+
     let isChecked = ref(false);
+    let rememberMe = defineModel<boolean>();
 
     function SwitchCheck() {
         isChecked.value = !isChecked.value;  
+        rememberMe.value = isChecked.value;
     }
-
-    function TryToLoginUser() {
-        router.replace('/userPage');
-    }
-
 </script>
 
 <style scoped>
     .loginActions {
-        width: 55%;
-
         margin-top: 10px;
 
         display: flex;
@@ -87,7 +82,7 @@
         color: #EAEAEA;
     }
 
-    button {
+    .logInButton {
         background-color: #EAEAEA;
         color: #00040D;
 
@@ -96,10 +91,11 @@
 
         border: none;
         border-radius: 10px;
-    }
 
-    button:hover {
-        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
 
     @media screen and (max-width: 600px) {

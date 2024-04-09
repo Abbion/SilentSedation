@@ -1,20 +1,53 @@
 //Rework Done
 <template>
     <div class="loginContainer">
-        <div class="loginPageTitle preventSelect">
+        <div class="loginPageTitle preventSelect" @click="getUserTest">
         Silent sedation
         </div>
 
-        <LoginInput inputTitle="Master name"/>
-        <LoginInput inputTitle="Password" :hideInput="true"/>
+        <form>
+            <LoginInput inputTitle="Master name" v-model="username"/>
+            <LoginInput inputTitle="Password" :hideInput="true" v-model="password"/>
 
-        <LoginActions/>
+            <LoginActions v-model="remember" @logInButtonClicked="logData"/>
+        </form>
     </div>
 </template>
 
 <script setup lang="ts">
     import LoginInput from './LoginInput.vue'
     import LoginActions from './LoginActions.vue'
+
+    import axios from 'axios';
+
+    let username : string = "";
+    let password : string = "";
+    let remember : boolean = false;
+
+    function logData() {
+        console.log(username, " p: ", password, " rm: ", remember);
+
+        axios.post('http://localhost:90/login', {
+            username: username,
+            password: password
+        })
+        .then(function (response) {
+            console.log(response);
+        })
+        .catch(function (error) {
+            console.log("Cath:",  error);
+        });
+
+    }
+
+    async function getUserTest() {
+        try {
+            const response = await axios.get('http://localhost:90/test');
+            console.log(response.data);
+        } catch (error) {
+            console.error("Error", error);
+        }
+    }
 </script>
 
 <style>

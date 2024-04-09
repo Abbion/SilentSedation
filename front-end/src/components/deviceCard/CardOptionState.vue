@@ -1,4 +1,3 @@
-//Rework Done
 <template>
     <div class="centerContentVertical">
         <p class="preventSelect">

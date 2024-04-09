@@ -1,9 +1,9 @@
 version: '3'
 services:
-    vue-app:
+    vue-web:
       build:
         context: .
-        dockerfile: ./docker/vue/Dockerfile
+        dockerfile: ./docker/vue-web/Dockerfile
       ports:
         - 8080:80
       volumes:
@@ -16,4 +16,15 @@ services:
       ports:
         - 80:80
       depends_on:
-        - vue-app
+        - vue-web
+      
+    rust-web:
+        build:
+            context: .
+            dockerfile: ./docker/rust-web/Dockerfile
+        ports:
+            - 90:90
+        volumes:
+            - ./back-end:/app
+        depends_on:
+            - vue-web

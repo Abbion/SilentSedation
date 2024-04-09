@@ -1,4 +1,3 @@
-//Rework Done
 <template>
     <div class="cardContainer centerContentVertical"
          :class="[ state == CardState.Add ? ['cardContainerDashed', 'cursorPointer', 'highlightElement'] : 'cardContainerSolid' ]"
