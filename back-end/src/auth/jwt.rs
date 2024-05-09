@@ -1,4 +1,4 @@
-use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, Algorithm, TokenData};
+use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::private::PrivateKeys;
