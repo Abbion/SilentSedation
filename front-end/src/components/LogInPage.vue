@@ -1,7 +1,7 @@
 //Rework Done
 <template>
     <div class="loginContainer">
-        <div class="loginPageTitle preventSelect" @click="getUserTest">
+        <div class="loginPageTitle preventSelect">
         Silent sedation
         </div>
 
@@ -9,55 +9,71 @@
             <LoginInput inputTitle="Master name" v-model="username"/>
             <LoginInput inputTitle="Password" :hideInput="true" v-model="password"/>
 
-            <LoginActions v-model="remember" @logInButtonClicked="logData"/>
+            <LoginActions v-model="remember" @logInButtonClicked="login"/>
         </form>
+
+        <div class="loginErrorMessages" v-show="errorMessage">
+            {{errorMessage}}
+        </div>
     </div>
 </template>
 
 <script setup lang="ts">
     import LoginInput from './LoginInput.vue'
     import LoginActions from './LoginActions.vue'
+    import { useRouter } from 'vue-router';
 
     import axios from 'axios';
+    import { onMounted, ref } from 'vue';
 
     let username : string = "";
     let password : string = "";
     let remember : boolean = false;
+    let errorMessage = ref<string>("");
 
-    function logData() {
-        console.log(username, " p: ", password, " rm: ", remember);
+    const router = useRouter();
+
+    onMounted(() => {
+        let token = localStorage.getItem('token');
+        if (token !== null) {
+            router.replace('/userPage');
+        }
+    })
+
+    function login() {
+        errorMessage.value = "";
+
+        if (username.length == 0 && password.length == 0) {
+            errorMessage.value = "username and password fields are empty";
+            return;
+        }
 
         axios.post('http://localhost:90/login', {
             username: username,
             password: password
         })
         .then(function (response) {
-            console.log(response);
+            let token = response.data["token"];
+            localStorage.setItem('token', token);
+            router.replace('/userPage');
         })
         .catch(function (error) {
             console.log("Cath:",  error);
+            errorMessage.value = error.response.data["message"];
+            console.log(errorMessage);
         });
-
-    }
-
-    async function getUserTest() {
-        try {
-            const response = await axios.get('http://localhost:90/test');
-            console.log(response.data);
-        } catch (error) {
-            console.error("Error", error);
-        }
     }
 </script>
 
 <style>
     .loginContainer {
         width: 600px;
+        height: 420px;
 
         position: absolute;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, calc(-50% + 35px));
 
         display: flex;
         flex-direction: column;
@@ -81,5 +97,19 @@
         .loginContainer {
             width: auto;
         }
+    }
+
+    .loginErrorMessages {
+        border-color: var(--color-error);
+        color: var(--color-error);
+
+        font-size: 15px;
+
+        margin-top: 1em;
+        padding: 5px;
+
+        border-width: 1px;
+        border-radius: 3px;
+        border-style: solid;
     }
 </style>

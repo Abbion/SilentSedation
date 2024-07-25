@@ -2,21 +2,19 @@ use std::sync::{Arc, Mutex};
 
 use actix_cors::Cors;
 use actix_web::{get, http::header::ContentType, post, web, App, HttpResponse, HttpServer, Responder};
-use database::LoginData;
+use communication::{ requests, responses };
+use database::UserId;
 use mongodb::Database;
 use private::PrivateKeys;
-use serde::{ Deserialize, Serialize };
-use tokio::sync::futures;
 
 mod auth;
 mod private;
-mod responses;
-mod requests;
+mod communication;
 mod database;
 
 struct AppState {
     jwt : auth::jwt::JsonWebTokenData,
-    next_card_id : Arc<Mutex<u64>>
+    db : Mutex<Database>
 }
 
 #[get("/test")]
@@ -41,53 +39,74 @@ async fn path_extractor(path: web::Path<(u32, String)>) -> impl Responder {
 }
 
 #[post("/login")]
-async fn login_user(body: web::Json<LoginData>, data: web::Data<AppState>) -> impl Responder {
-    let username = &body.username;
-    let password = &body.password;
-    
-    if username == "Wiktor" && password == "123" {
-        let mut user_token = auth::jwt::UserToken::new(String::from("Wiktor"), 1);
-        user_token.set_exp_in_days(30);
-        
-        let encoded_token = data.jwt.encode(&user_token);
-        let encoded_token = match encoded_token {
-            Ok(token) => token,
-            Err(e) => {
-                println!("{}", e);
-                return HttpResponse::InternalServerError().body("Internal login error: 1");
-            }
-        };
-
-        let response = responses::LoginResposne{ token : encoded_token };
-        let serialized_response = serde_json::to_string(&response);
-        let serialized_response = match serialized_response {
-            Ok(response) => response,
-            Err(e) => {
-                println!("{}", e);
-                return HttpResponse::InternalServerError().body("Internal login error: 2");
-            }
-        };
-
-        return HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response);
-    }
-
-    let response = responses::BadRequestResponse{ message : String::from("incorrect username or password"), code : responses::BadRequestCodes::IncorrectLoginCredentails };
-    let serialized_error_response = serde_json::to_string(&response);
-    let serialized_error_response = match serialized_error_response {
-        Ok(response) => response,
+async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match data.db.lock() {
+        Ok(db) => db,
         Err(e) => {
-            println!("{}", e);
+            eprint!("{}", e);
+            return HttpResponse::InternalServerError().body("Internal login error: 1");
+        }
+    };
+
+    let username = body.username.to_string();
+    let password = body.password.to_string();
+
+    let user_data_collection = database::get_collections(&db).await;
+    let res = user_data_collection.get_user_id(requests::LoginUserRequest{ username : username.clone(), password }).await;
+
+    let user_id = match res {
+        Some(uesr_id) => uesr_id,
+        None => {
+            let response = responses::BadRequestResponse{ message : String::from("incorrect username or password"), code : responses::BadRequestCodes::IncorrectLoginCredentails };
+            let serialized_error_response = serde_json::to_string(&response);
+            let serialized_error_response = match serialized_error_response {
+            Ok(response) => response,
+                Err(e) => {
+                    eprint!("{}", e);
+                    return HttpResponse::InternalServerError().body("Internal login error: 2");
+                }
+            };
+
+            return HttpResponse::Unauthorized().body(serialized_error_response)
+        }
+    };
+
+    let mut user_token = auth::jwt::UserToken::new(String::from(format!("{}", user_id)), 1);
+    user_token.set_exp_in_days(30);
+        
+    let encoded_token = data.jwt.encode(&user_token);
+    let encoded_token = match encoded_token {
+        Ok(token) => token,
+        Err(e) => {
+            eprintln!("{}", e);
             return HttpResponse::InternalServerError().body("Internal login error: 3");
         }
     };
 
-    HttpResponse::Unauthorized().body(serialized_error_response)
+    let response = responses::LoginResposne{ token : encoded_token };
+    let serialized_response = serde_json::to_string(&response);
+    let serialized_response = match serialized_response {
+        Ok(response) => response,
+        Err(e) => {
+            eprintln!("{}", e);
+            return HttpResponse::InternalServerError().body("Internal login error: 4");
+        }
+    };
+    
+    HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
 }
 
 #[post("/get_user_page_info")]
-async fn get_user_page_info(body: web::Json<requests::GetUserPageInfoRequest>, data: web::Data<AppState>) -> impl Responder {
+async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match data.db.lock() {
+        Ok(db) => db,
+        Err(e) => {
+            eprint!("{}", e);
+            return HttpResponse::InternalServerError().body("Internal user page info error: 1");
+        }
+    };
+
     let token = &body.token;
-    
     let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
 
     let user_token = match user_token_result {
@@ -98,12 +117,26 @@ async fn get_user_page_info(body: web::Json<requests::GetUserPageInfoRequest>, d
         }
     };
 
-    let user_page_response = responses::UserPageDataResponse {
-        username : String::from("Wiktor"),
-        cards_ids : vec![]
+    let user_id = match UserId::from_str(&user_token.sub) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal user page info error: 2");
+        }
+    };
+
+    let user_data_collection = database::get_collections(&db).await;
+    let res = user_data_collection.get_user_page_info(user_id).await;
+
+    let user_page_response = match res {
+        Some(a) => a,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal user page info error: 2");
+        }
     };
 
     let serialized_response = serde_json::to_string(&user_page_response);
+
+    println!("{:?}", serialized_response);
 
     let serialized_response = match serialized_response {
         Ok(response) => response,
@@ -118,7 +151,7 @@ async fn get_user_page_info(body: web::Json<requests::GetUserPageInfoRequest>, d
 }
 
 #[post("/get_new_card_id")]
-async fn get_new_card_id(body: web::Json<requests::GetUserPageInfoRequest>, data: web::Data<AppState>) -> impl Responder {
+async fn get_new_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
     let token = &body.token;
     
     let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
@@ -131,15 +164,7 @@ async fn get_new_card_id(body: web::Json<requests::GetUserPageInfoRequest>, data
         }
     };
 
-    let mut next_id_mutex = data.next_card_id.lock().unwrap();
-
-    let next_id_respose = responses::NextIdResponse {
-        next_id : *next_id_mutex
-    };
-
-    println!("{}", next_id_mutex);
-    *next_id_mutex += 1;
-
+    let next_id_respose = 1;
     let serialized_response = serde_json::to_string(&next_id_respose);
 
     let serialized_response = match serialized_response {
@@ -148,7 +173,7 @@ async fn get_new_card_id(body: web::Json<requests::GetUserPageInfoRequest>, data
             println!("{:?}", e);
             return HttpResponse::InternalServerError().body("Internal login error");
         }
-        
+
     };
 
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
@@ -185,13 +210,9 @@ async fn initialize() -> (Database, PrivateKeys) {
 async fn main() -> std::io::Result<()> {
     let (db, private_keys) =  initialize().await;
 
-    database::list_collections(&db).await ;
-    let res = database::get_uesr_id(&db, LoginData{ username: "Wiktor".to_string(), password : "123".to_string() }).await;
-    println!("User state: {:?}", res);
-
     let web_data = web::Data::new(AppState{
         jwt : auth::jwt::JsonWebTokenData::new(&private_keys),
-        next_card_id : Arc::new(Mutex::new(1))
+        db : Mutex::new(db)
     });
 
     HttpServer::new(move || {

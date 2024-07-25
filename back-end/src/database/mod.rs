@@ -1,15 +1,66 @@
-use mongodb::{ bson::{doc, oid::ObjectId, Document}, options::{ClientOptions, FindOneOptions, FindOptions}, Client, Database };
-use serde::{Serialize, Deserialize };
+use core::fmt;
+use std::str::FromStr;
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct LoginData {
-    pub username : String,
-    pub password : String
+use mongodb::{ options::ClientOptions, Client, Database };
+use user_data::UserDataCollection;
+
+mod user_data;
+
+use serde::{Serialize, Deserialize};
+use bson::{ Document, oid::ObjectId };
+
+fn to_document<T>(data: &T) -> Option<Document>
+where
+    T: Serialize + Deserialize<'static>,
+{
+    let json_string = match serde_json::to_string(data) {
+        Ok(json) => json,
+        Err(err) => {
+            eprintln!("Struct to json string failed: {}", err);
+            return  None;
+        }
+    };
+
+    let json_value = match serde_json::from_str::<serde_json::Value>(&json_string) {
+        Ok(value) => value,
+        Err(err) => {
+            eprintln!("Json to value failed: {}", err);
+            return None;
+        }
+    };
+
+    let bson_document = match bson::to_document(&json_value) {
+        Ok(document) => document,
+        Err(err) => {
+            eprintln!("Value to document failed: {}", err);
+            return None;
+        }
+    };
+
+    Some(bson_document)
 }
+
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserId {
     _id: ObjectId,
+}
+
+impl fmt::Display for UserId {
+       fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self._id)
+    } 
+}
+
+impl UserId {
+    pub fn from_str(id_str : &String) -> Option<UserId> {
+        let mongo_id = match ObjectId::from_str(&id_str) {
+            Ok(id) => id,
+            Err(e) => return None
+        };
+
+        Some(UserId{_id: mongo_id})
+    }
 }
 
 pub async fn connect_to_database() -> Database {
@@ -36,50 +87,28 @@ pub async fn connect_to_database() -> Database {
     client.database("silent_sedation_db") 
 }
 
-pub async fn list_collections(db: &Database) {
+async fn get_collection_names(db: &Database) -> Vec<String> {
     match db.list_collection_names(None).await {
-        Ok(collections) => {
-            for collection_name in collections.iter() {
-                println!("{}", collection_name);
-            }
-        },
+        Ok(cn) => cn,
         Err(e) => {
-            eprintln!("Collection request failed: {}", e);
+            eprintln!("Collection names request failed: {}", e);
+            Vec::new()
         }
     }
 }
 
-pub async fn get_uesr_id(db: &Database, login_data: LoginData) -> Option<UserId> {
-    let user_data_collection = db.collection::<UserId>("users_data");
-    let filter = doc! { "username" : login_data.username, "password" : login_data.password };
-    let find_options = FindOneOptions::builder().projection(doc! {"_id": 1}).build();
-    let find_result = user_data_collection.find_one(filter, find_options).await;
+pub async fn get_collections(db: &Database) -> UserDataCollection {
+    let collection_names = get_collection_names(db).await;
+    
+    if collection_names.is_empty() {
+        panic!("collection names returned empty!");
+    }
 
-     match find_result {
-        Ok(fr) => fr,
-        Err(e) => {
-            eprintln!("getting user id failed: {}", e);
-            return None;
+    for collection_name in collection_names {
+        if collection_name.eq("users_data") {
+            return UserDataCollection::new(db);
         }
-    }    
-}
-
-pub async fn get_user_basic_info() {
-
-}
-
-pub async fn get_card() {
-
-}
-
-pub async fn update_card() {
-
-}
-
-pub async fn save_new_card() {
-
-}
-
-pub async fn delete_card() {
-
+    }
+    
+    UserDataCollection::new(db)
 }

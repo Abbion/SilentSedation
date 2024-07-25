@@ -6,7 +6,7 @@
         </div>
 
         <div class="userPageInfo">
-            <p class="preventSelect">
+            <p class="preventSelect" @click="clearStorage">
                 Devices
             </p>
 
@@ -22,11 +22,61 @@
 <script setup lang="ts">
     import UserDash from './UserDash.vue'
     import DeviceCard from './deviceCard/DeviceCard.vue'
-
-    import { ref } from 'vue';
+    import { useRouter } from 'vue-router';
+    import { onMounted, ref } from 'vue';
+    import axios from 'axios';
 
     let nextCardId = 1;
-    let cardsId = ref<number[]>([0]);
+    let cardsId = ref<number[]>([]);
+
+    const router = useRouter();
+
+    onMounted(() => {
+        let token = localStorage.getItem('token');
+        if (token !== null) {
+            let params = {
+                token : token
+            }
+
+            axios.post('http://localhost:90/get_user_page_info', {
+                    token: token
+            })
+            .then(function (response) {
+                let username = response.data["username"];
+                let cards = response.data["card_ids"];
+                
+                console.log("Fortnite: ", response.data);
+                
+                console.log("username: ", username, " cards: ", cards);
+                
+
+                for (let ids in cards) {                    
+                    cardsId.value.push(parseInt(ids));
+                }
+            }).catch(function (error) {
+                console.log("Cath:",  error);
+            });
+
+            if (cardsId.value.length == 0) {
+                axios.post('http://localhost:90/get_new_card_id', {
+                    token : token
+                })
+                .then(function (response) {
+                    console.log(response.data);
+                    
+                }).catch(function (error) {
+                    console.log("Cath:",  error);
+                });
+            }
+        }
+        else {
+            router.replace('/');
+        }
+    });
+
+    function clearStorage() {
+        localStorage.clear();
+    }
 
     function AddNewCard() {
         cardsId.value.push(nextCardId);

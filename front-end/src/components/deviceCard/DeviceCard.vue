@@ -132,7 +132,7 @@
     }
 
     .highlightElement:hover {
-    background-color: --color-main-dark--highlight;
+        background-color: var(--color-main-dark--highlight);
     }
 
     .cardContainerDashed {

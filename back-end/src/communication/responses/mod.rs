@@ -26,3 +26,9 @@ pub struct BadRequestResponse {
 pub struct NextIdResponse {
     pub next_id : u64
 }
+
+#[derive(Serialize, Debug)]
+pub struct GetUserPageInfoResponse {
+    pub username : String,
+    pub card_ids : Vec<i32> //Change to u32
+}
