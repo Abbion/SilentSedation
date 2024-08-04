@@ -38,7 +38,7 @@
                 token : token
             }
 
-            axios.post('http://localhost:90/get_user_page_info', {
+            axios.post('http://localhost:9000/get_user_page_info', {
                     token: token
             })
             .then(function (response) {
@@ -58,7 +58,7 @@
             });
 
             if (cardsId.value.length == 0) {
-                axios.post('http://localhost:90/get_new_card_id', {
+                axios.post('http://localhost:9000/get_new_card_id', {
                     token : token
                 })
                 .then(function (response) {

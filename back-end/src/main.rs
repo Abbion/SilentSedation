@@ -231,7 +231,7 @@ async fn main() -> std::io::Result<()> {
         .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)
-    .bind(("127.0.0.1", 90))?
+    .bind(("127.0.0.1", 9000))?
     .run()
     .await
 }

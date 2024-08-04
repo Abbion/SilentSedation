@@ -100,6 +100,8 @@ async fn get_collection_names(db: &Database) -> Vec<String> {
 pub async fn get_collections(db: &Database) -> UserDataCollection {
     let collection_names = get_collection_names(db).await;
     
+    println!("{:?}", collection_names);
+
     if collection_names.is_empty() {
         panic!("collection names returned empty!");
     }
