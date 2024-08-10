@@ -34,10 +34,6 @@
     onMounted(() => {
         let token = localStorage.getItem('token');
         if (token !== null) {
-            let params = {
-                token : token
-            }
-
             axios.post('http://localhost:9000/get_user_page_info', {
                     token: token
             })
@@ -45,29 +41,31 @@
                 let username = response.data["username"];
                 let cards = response.data["card_ids"];
                 
-                console.log("Fortnite: ", response.data);
-                
-                console.log("username: ", username, " cards: ", cards);
-                
+                //console.log("Fortnite: ", response.data);
+                //console.log("username: ", username, " cards: ", cards);
 
                 for (let ids in cards) {                    
                     cardsId.value.push(parseInt(ids));
                 }
-            }).catch(function (error) {
+                })
+            .then(function() {
+	    	    console.log("Great: ", cardsId.value);
+
+                if (cardsId.value.length == 0) {
+                    axios.post('http://localhost:9000/get_new_card_id', {
+                        token : token
+                    })
+                    .then(function (response) {
+                        console.log(response.data);
+                    })
+		            .catch(function (error) {
+                        console.log("Cath:",  error);
+                    });
+                }
+            })
+            .catch(function (error) {
                 console.log("Cath:",  error);
             });
-
-            if (cardsId.value.length == 0) {
-                axios.post('http://localhost:9000/get_new_card_id', {
-                    token : token
-                })
-                .then(function (response) {
-                    console.log(response.data);
-                    
-                }).catch(function (error) {
-                    console.log("Cath:",  error);
-                });
-            }
         }
         else {
             router.replace('/');

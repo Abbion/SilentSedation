@@ -1,5 +1,3 @@
-use std::vec;
-
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ Bson, doc , Document };
 use crate::communication::{ requests, responses };
@@ -11,7 +9,7 @@ pub struct UserDataCollection {
 
 impl UserDataCollection {
     pub fn new(db: &Database) -> UserDataCollection {
-        UserDataCollection{ collection: db.collection::<Document>("users_data") }
+        UserDataCollection{ collection: db.collection::<Document>("user_data") }
     }
 
     pub async fn get_user_id(&self, login_data: requests::LoginUserRequest) -> Option<UserId> {
@@ -19,7 +17,7 @@ impl UserDataCollection {
             Some(f) => f,
             None => return None
         };
-        
+
         let find_options = FindOneOptions::builder().projection(doc! {"_id": 1}).build();
         let find_result = self.collection.find_one(filter, find_options).await;
     
@@ -30,7 +28,7 @@ impl UserDataCollection {
                 None
             }
         };
-    
+
         let user_id_result = match fr {
             Some(doc) => bson::from_bson::<UserId>(Bson::Document(doc)),
             None => { return None; }
@@ -57,7 +55,7 @@ impl UserDataCollection {
         let fr = match find_result {
             Ok(fr) => fr,
             Err(e) => {
-                eprintln!("Getting user basic info failed");
+                eprintln!("Getting user basic info failed: {}", e);
                 None
             }
         };

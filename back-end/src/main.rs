@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::sync::Mutex;
 
 use actix_cors::Cors;
 use actix_web::{get, http::header::ContentType, post, web, App, HttpResponse, HttpServer, Responder};

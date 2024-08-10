@@ -40,7 +40,7 @@ def add_card():
             next_id += 1
 
         else:
-            return cards
+            return (cards, next_id)
 
 
 def main():
@@ -76,9 +76,9 @@ def main():
 
         break
     
-    cards = add_card()
+    cards, next_card_id = add_card()
 
-    print("db." + DATABASE_NAME + ".insertOne({username:\"" + username + "\"" + ", password:\"" + password + "\"" + ", cards:[" + cards + "]})")
+    print("db." + DATABASE_NAME + ".insertOne({username:\"" + username + "\"" + ", password:\"" + password + "\"" + ", next_card_id: " + str(next_card_id) + ", cards:[" + cards + "]})")
 
 if __name__ == "__main__":
     main()
