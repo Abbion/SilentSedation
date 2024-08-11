@@ -15,7 +15,7 @@ impl UserDataCollection {
     pub async fn get_user_id(&self, login_data: requests::LoginUserRequest) -> Option<UserId> {
         let filter = match to_document(&login_data) {
             Some(f) => f,
-            None => return None
+            None => { return None; }
         };
 
         let find_options = FindOneOptions::builder().projection(doc! {"_id": 1}).build();
@@ -25,7 +25,7 @@ impl UserDataCollection {
             Ok(fr) => fr,
             Err(e) => {
                 eprintln!("getting user id failed: {}", e);
-                None
+                return None;
             }
         };
 
@@ -38,7 +38,7 @@ impl UserDataCollection {
             Ok(uir) => Some(uir),
             Err(e) => {
                 eprintln!("Document to UserId conversion failed: {}", e);
-                None
+                return None;
             }
         }
     }
@@ -46,7 +46,7 @@ impl UserDataCollection {
     pub async fn get_user_page_info(&self, user_id: UserId) -> Option<responses::GetUserPageInfoResponse> {
         let filter = match to_document(&user_id) {
             Some(f) => f,
-            None => return None
+            None => { return None; }
         };
 
         let find_options = FindOneOptions::builder().projection(doc! {"username": 1, "cards.id": 1}).build();
@@ -56,7 +56,7 @@ impl UserDataCollection {
             Ok(fr) => fr,
             Err(e) => {
                 eprintln!("Getting user basic info failed: {}", e);
-                None
+                return None;
             }
         };
 
@@ -64,12 +64,12 @@ impl UserDataCollection {
             Some(data) => {
                 let username = match data.get_str("username") {
                     Ok(res) => res.to_string(),
-                    Err(_) => return None
+                    Err(_) => { return None; }
                 };
 
                 let cards = match data.get_array("cards") {
                     Ok(res) => res,
-                    Err(_) => return None
+                    Err(_) => { return None; }
                 };
 
                 let mut ids_vec = Vec::new();
@@ -88,7 +88,39 @@ impl UserDataCollection {
 
                 return Some(responses::GetUserPageInfoResponse{ username : username, card_ids: ids_vec });
             },
-            None => return None
+            None => { return None; }
+        };
+    }
+
+    pub async fn get_card_next_id(&self, user_id: UserId) -> Option<responses::GetUserNextIdResponse> {
+        let filter = match to_document(&user_id) {
+            Some(f) => f,
+            None => { return None; }
+        };
+
+        let find_options = FindOneOptions::builder().projection(doc! { "next_card_id": 1 }).build();
+        let find_result = self.collection.find_one(filter, find_options).await;
+
+        let fr = match find_result {
+            Ok(fr) => fr,
+            Err(e) => {
+                eprintln!("Getting unsers next card id failed: {}", e);
+                return None;
+            }
+        };
+
+
+
+        match fr {
+            Some(data) => {
+                let next_card_id = match data.get_i64("next_card_id") {
+                    Ok(res) => res,
+                    Err(_) => { return None; }
+                    };
+
+                return Some(responses::GetUserNextIdResponse{ next_card_id });
+            },
+            None => { return None; }
         };
     }
 

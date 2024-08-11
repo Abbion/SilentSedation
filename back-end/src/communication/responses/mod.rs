@@ -32,3 +32,8 @@ pub struct GetUserPageInfoResponse {
     pub username : String,
     pub card_ids : Vec<i32> //Change to u32
 }
+
+#[derive(Serialize, Debug)]
+pub struct GetUserNextIdResponse {
+    pub next_card_id : i64
+}

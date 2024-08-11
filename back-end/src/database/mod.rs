@@ -56,7 +56,7 @@ impl UserId {
     pub fn from_str(id_str : &String) -> Option<UserId> {
         let mongo_id = match ObjectId::from_str(&id_str) {
             Ok(id) => id,
-            Err(e) => return None
+            Err(_) => return None
         };
 
         Some(UserId{_id: mongo_id})

@@ -130,7 +130,7 @@ async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data
     let user_page_response = match res {
         Some(a) => a,
         None => {
-            return HttpResponse::InternalServerError().body("Internal user page info error: 2");
+            return HttpResponse::InternalServerError().body("Internal user page info error: 3");
         }
     };
 
@@ -142,7 +142,7 @@ async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data
         Ok(response) => response,
         Err(e) => {
             println!("{:?}", e);
-            return HttpResponse::InternalServerError().body("Internal login error");
+            return HttpResponse::InternalServerError().body("Internal user page info error: 4");
         }
         
     };
@@ -150,10 +150,17 @@ async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
 }
 
-#[post("/get_new_card_id")]
-async fn get_new_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
+#[post("/get_next_card_id")]
+async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match data.db.lock() {
+        Ok(db) => db,
+        Err(e) => {
+            eprint!("{}", e);
+            return HttpResponse::InternalServerError().body("Internal get next id error: 1");
+        }
+    };
+
     let token = &body.token;
-    
     let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
 
     let user_token = match user_token_result {
@@ -164,16 +171,31 @@ async fn get_new_card_id(body: web::Json<requests::GetBasicUserRequest>, data: w
         }
     };
 
-    let next_id_respose = 1;
-    let serialized_response = serde_json::to_string(&next_id_respose);
+    let user_id = match UserId::from_str(&user_token.sub) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal get next id error: 2");
+        }
+    };
+
+    let user_data_collection = database::get_collections(&db).await;
+    let res = user_data_collection.get_card_next_id(user_id).await;
+
+    let next_card_id_response = match res {
+        Some(response) => response,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal get next id error: 3");
+        }
+    };
+
+    let serialized_response = serde_json::to_string(&next_card_id_response);
 
     let serialized_response = match serialized_response {
         Ok(response) => response,
         Err(e) => {
             println!("{:?}", e);
-            return HttpResponse::InternalServerError().body("Internal login error");
+            return HttpResponse::InternalServerError().body("Internal get next id error: 4");
         }
-
     };
 
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
@@ -227,7 +249,7 @@ async fn main() -> std::io::Result<()> {
         .app_data(web_data.clone())
         .service(login_user)
         .service(get_user_page_info)
-        .service(get_new_card_id)
+        .service(get_next_card_id)
         .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)

@@ -47,18 +47,18 @@
                 for (let ids in cards) {                    
                     cardsId.value.push(parseInt(ids));
                 }
-                })
+            })
             .then(function() {
 	    	    console.log("Great: ", cardsId.value);
 
-                if (cardsId.value.length == 0) {
-                    axios.post('http://localhost:9000/get_new_card_id', {
+                if (cardsId.value.length != 0) {
+                    axios.post('http://localhost:9000/get_next_card_id', {
                         token : token
                     })
                     .then(function (response) {
-                        console.log(response.data);
+                        console.log("Next card id: ", response.data);
                     })
-		            .catch(function (error) {
+		    .catch(function (error) {
                         console.log("Cath:",  error);
                     });
                 }
