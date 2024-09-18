@@ -4,6 +4,7 @@ export interface CardData {
     id: number;
     name: string;
     deviceType: DeviceType;
+    deviceProperties: Object;
     code: number[];
 }
 

@@ -8,18 +8,26 @@
             <div class="useOptions cursorPointer preventSelect" @click="$emit('cardOptionsClicked')">...</div>
         </div>
         <div class="useContent">
-            <SchockerControll></SchockerControll>
+             <SchockerControll></SchockerControll>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+    import { DeviceType } from '../common/Enums';
     import SchockerControll from './deviceControllers/SchockerControll.vue'
-    import { defineProps } from 'vue'
+    import { defineProps, onMounted } from 'vue'
 
-    defineProps<{
-        cardName: string
+    const props = defineProps<{
+        cardName: string,
+        deviceType: DeviceType,
+        deviceProperties: Object
     }>();
+
+    onMounted(() => {
+        console.log("UserState: " + props.cardName + " deviceType: " + props.deviceType + " properties: " + props.deviceProperties);
+    })
+
 </script>
 
 <style scoped>

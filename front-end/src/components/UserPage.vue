@@ -41,8 +41,8 @@
                 let username = response.data["username"];
                 let cards = response.data["card_ids"];
                 
-                //console.log("Fortnite: ", response.data);
-                //console.log("username: ", username, " cards: ", cards);
+                console.log("Fortnite: ", response.data);
+                console.log("username: ", username, " cards: ", cards);
 
                 for (let ids in cards) {                    
                     cardsId.value.push(parseInt(ids));
@@ -65,15 +65,26 @@
             })
             .catch(function (error) {
                 console.log("Cath:",  error);
+                let status = error["response"].status;
+                if (status == 401)
+                {
+                    clearStorage();
+                    navigateToLogIn();
+                }
             });
         }
         else {
-            router.replace('/');
+            clearStorage();
+            navigateToLogIn();
         }
     });
 
     function clearStorage() {
         localStorage.clear();
+    }
+
+    function navigateToLogIn() {
+        router.replace('/');
     }
 
     function AddNewCard() {

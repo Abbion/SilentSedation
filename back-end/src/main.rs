@@ -11,6 +11,7 @@ mod auth;
 mod private;
 mod communication;
 mod database;
+mod utils;
 
 struct AppState {
     jwt : auth::jwt::JsonWebTokenData,
@@ -136,7 +137,7 @@ async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data
 
     let serialized_response = serde_json::to_string(&user_page_response);
 
-    println!("{:?}", serialized_response);
+    println!("user page info: {:?}", serialized_response);
 
     let serialized_response = match serialized_response {
         Ok(response) => response,
@@ -201,6 +202,61 @@ async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: 
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
 }
 
+#[post("/get_card")]
+async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match data.db.lock() {
+        Ok(db) => db,
+        Err(e) => {
+            eprint!("{}", e);
+            return HttpResponse::InternalServerError().body("Internal get card error: 1");
+        }
+    };
+
+    let token = &body.token;
+    let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
+
+    let user_token = match user_token_result {
+        Ok(user_token) => user_token.claims,
+        Err(e) => {
+            println!("{}", e);
+            return HttpResponse::Unauthorized().body("User token dedode failed");
+        }
+    };
+
+    let user_id = match UserId::from_str(&user_token.sub) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal get card error: 2");
+        }
+    };
+
+    let card_id = body.card_id;
+
+    let user_data_collection = database::get_collections(&db).await;
+    let res = user_data_collection.get_card(user_id, card_id).await;
+
+    let get_card_response = match res {
+        Some(response) => response,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal get card error: 3");
+        }
+    };
+
+    let serialized_response = serde_json::to_string(&get_card_response);
+
+    println!("card data: {:?}", serialized_response);
+
+    let serialized_response = match serialized_response {
+        Ok(response) => response,
+        Err(e) => {
+            println!("{:?}", e);
+            return HttpResponse::InternalServerError().body("Internal get card error: 4");
+        }
+    };
+
+    HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
+}
+
 async fn initialize() -> (Database, PrivateKeys) {
     let db_handle = tokio::spawn(async {
         database::connect_to_database().await
@@ -250,6 +306,7 @@ async fn main() -> std::io::Result<()> {
         .service(login_user)
         .service(get_user_page_info)
         .service(get_next_card_id)
+        .service(get_card)
         .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)

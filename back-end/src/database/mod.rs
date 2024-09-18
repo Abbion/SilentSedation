@@ -42,26 +42,29 @@ where
 
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct UserId {
+pub struct DatabaseObjectId {
     _id: ObjectId,
 }
 
-impl fmt::Display for UserId {
+impl fmt::Display for DatabaseObjectId {
        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self._id)
     } 
 }
 
-impl UserId {
-    pub fn from_str(id_str : &String) -> Option<UserId> {
+impl DatabaseObjectId {
+    pub fn from_str(id_str : &String) -> Option<DatabaseObjectId> {
         let mongo_id = match ObjectId::from_str(&id_str) {
             Ok(id) => id,
             Err(_) => return None
         };
 
-        Some(UserId{_id: mongo_id})
+        Some(DatabaseObjectId{_id: mongo_id})
     }
 }
+
+pub type UserId = DatabaseObjectId;
+pub type CardId = i64;
 
 pub async fn connect_to_database() -> Database {
     let client_options = ClientOptions::parse("mongodb://localhost:27017").await;

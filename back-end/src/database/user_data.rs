@@ -1,7 +1,10 @@
 use mongodb::{ options::FindOneOptions, Collection, Database };
-use bson::{ Bson, doc , Document };
+use bson::{ doc, document, Bson, Document };
 use crate::communication::{ requests, responses };
 use crate::database::{ to_document, UserId };
+use crate::utils::deviceTypes::{ DeviceType, ShockCallerData };
+
+use super::CardId;
 
 pub struct UserDataCollection {
     collection : Collection<Document>
@@ -77,7 +80,7 @@ impl UserDataCollection {
                 for card in cards {
                     match card.as_document() {
                         Some(card_document) => {
-                            match card_document.get_i32("id") {
+                            match card_document.get_i64("id") {
                                 Ok(id) => ids_vec.push(id),
                                 Err(_) => {}
                             }
@@ -109,8 +112,6 @@ impl UserDataCollection {
             }
         };
 
-
-
         match fr {
             Some(data) => {
                 let next_card_id = match data.get_i64("next_card_id") {
@@ -124,9 +125,66 @@ impl UserDataCollection {
         };
     }
 
-pub async fn get_card() {
+    pub async fn get_card(&self, user_id: UserId, card_id : CardId) -> Option<responses::GetCardDataResponse> {
+        let filter = doc! {
+            "$and": [
+                { "_id": user_id._id},
+                { "cards.id": Bson::Int64(card_id) }
+            ]
+        };
 
-}
+        let find_options = FindOneOptions::builder().projection(doc! {"cards.$": 1}).build();
+        let find_result = self.collection.find_one(filter, find_options).await;
+
+        let fr = match find_result {
+            Ok(fr) => fr,
+            Err(e) => {
+                eprintln!("Getting user basic info failed: {}", e);
+                return None;
+            }
+        };
+
+       match fr {
+            Some(data) => {
+                let card = match data.get_array("cards") {
+                    Ok(res) => {
+                        let first_entry = match res.first() {
+                            Some(entry) => entry,
+                            None => { return None; }
+                        };
+
+                        let first_entry_doc = match first_entry.as_document() {
+                            Some(entry_doc) => entry_doc,
+                            None => { return None; }
+                        };
+
+                        first_entry_doc
+                    },
+                    Err(_) => { return None; }
+                };
+
+                let device_type = match card.get_i32("device_type") {
+                    Ok(res) => res,
+                    Err(_) => { return None; }
+                };
+
+                let device_name = match card.get_str("device_name") {
+                    Ok(res) => res.to_string(),
+                    Err(_) => { return None; }
+                };
+
+                let resp = responses::GetCardDataResponse{
+                    card_id: card_id,
+                    device_name: device_name,
+                    device_type: DeviceType::SHOCK_CALLER(ShockCallerData{ power: 2 }),
+                    code: [1, 2, 3, 4, 5, 6]
+                 };
+
+                return Some(resp);
+            },
+            None => { return None; }
+        };
+    }
 
 pub async fn update_card() {
 

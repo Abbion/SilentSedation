@@ -4,16 +4,20 @@
           ref="cardContainerHTML"
           @click="CardContainerClick">
     
-    <CardAddState v-show="state == CardState.Add"></CardAddState>
+    <CardAddState v-if="state == CardState.Add"></CardAddState>
 
-    <CardEditState v-show="state == CardState.Edit" 
+    <CardEditState v-if="state == CardState.Edit" 
                   @cardEditAddButtonClicked="HandleEditStateData" 
                   @cardEditCancelButtonClicked="HandleEditStateCancel"
                  :cardDataProp="cardData"></CardEditState>
 
-    <CardUseState v-show="state == CardState.Use" :cardName="cardData.name" @cardOptionsClicked="GoToOptionState"></CardUseState>
+    <CardUseState v-if="state == CardState.Use"
+                 :cardName="cardData.name"
+                 :deviceType="cardData.deviceType"
+                 :deviceProperties="cardData.deviceProperties"
+                  @cardOptionsClicked="GoToOptionState"></CardUseState>
 
-    <CardOptionState v-show="state == CardState.Options"
+    <CardOptionState v-if="state == CardState.Options"
                     :cardName="cardData.name"
                     @cardOptionsEditButtonClicked="GoToEditState" 
                     @cardOptionsDeleteButtonClicked="HandleDeleteCard"
@@ -28,10 +32,12 @@
     import CardOptionState from './CardOptionState.vue'
     import CardUseState from './CardUseState.vue'
 
-    import { ref, defineEmits, onMounted } from 'vue'
+    import { ref, defineEmits, onMounted, useTransitionState } from 'vue'
 
     import type { CardData } from '../common/Interfaces'
-    import { DeviceType } from '../common/Enums';
+    import { DeviceType, StringToDeviceType } from '../common/Enums';
+
+    import axios from 'axios';
 
     enum CardState {
         Add,
@@ -46,12 +52,56 @@
     }>();
 
     let state = ref(CardState.Add);
+    let useStateComponent = ref<HTMLTemplateElement>();
     let cardContainerHTML = ref<HTMLDivElement>();
-    let cardData : CardData = { id: -1, name: "", deviceType: DeviceType.None, code: [] };
+    let cardData : CardData = { id: -1, name: "", deviceType: DeviceType.None, deviceProperties: {}, code: [] };
     let cancelFromEdit = false;
-
+    
     onMounted(()=>{
-        cardData.id = props.cardId;        
+        cardData.id = props.cardId;
+
+        console.log("created device with id: ", props.cardId);
+
+        let token = localStorage.getItem('token');
+        if (token !== null) {
+            axios.post('http://localhost:9000/get_card', {
+                    token: token,
+                    card_id: cardData.id
+            })
+            .then(function (response) {
+                let card_id = response.data["card_id"];
+                let device_name = response.data["device_name"];
+
+
+                if (device_name.length < 1)
+                {
+
+                }
+                else
+                {   
+                    let device_type_obj = response.data["device_type"];
+                    let device_code = response.data["code"];
+                    let device_type_array = Object.keys(device_type_obj);
+
+                    if (device_type_array.length != 1)
+                        throw new Error("Device type has returned: " + device_type_array.length + " entries!");
+                
+                    let device_type = device_type_array[0];
+                    let device_value: number = device_type_obj[device_type].power;
+
+                    cardData.name = device_name;
+                    cardData.deviceType = StringToDeviceType(device_type);
+                    cardData.deviceProperties = device_type_obj;
+                    cardData.code = device_code;
+
+                    GoToUseState();
+                }
+                
+            }).catch( function(error) {
+                console.log("Device card ", cardData.id, " error: ", error);
+                
+            })
+        }
     });
 
     function CardContainerClick() {

@@ -36,7 +36,7 @@ def add_card():
             if len(cards) > 0:
                 cards += ", "
 
-            cards += "{id: " + str(next_id) + ", device_type: " + device_type + ", device_name: \"" + device_name + "\"}"
+            cards += "{id: Long(" + str(next_id) + "), device_type: " + device_type + ", device_name: \"" + device_name + "\"}"
             next_id += 1
 
         else:
@@ -78,7 +78,7 @@ def main():
     
     cards, next_card_id = add_card()
 
-    print("db." + DATABASE_NAME + ".insertOne({username:\"" + username + "\"" + ", password:\"" + password + "\"" + ", next_card_id: " + str(next_card_id) + ", cards:[" + cards + "]})")
+    print("db." + DATABASE_NAME + ".insertOne({username:\"" + username + "\"" + ", password:\"" + password + "\"" + ", next_card_id: Long(" + str(next_card_id) + "), cards:[" + cards + "]})")
 
 if __name__ == "__main__":
     main()
