@@ -3,30 +3,25 @@
     <div>
         <div class="useHeader">
             <p class="preventSelect">
-                {{ cardName }}
+                {{ p_cardData.name }}
             </p>
             <div class="useOptions cursorPointer preventSelect" @click="$emit('cardOptionsClicked')">...</div>
         </div>
         <div class="useContent">
-             <SchockerControll></SchockerControll>
+             <SchockerControll v-if="p_cardData.deviceType == DeviceType.ShockCaller" :properties="p_cardData.deviceProperties"></SchockerControll>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
     import { DeviceType } from '../common/Enums';
+    import type { CardData } from '../common/Interfaces';
     import SchockerControll from './deviceControllers/SchockerControll.vue'
-    import { defineProps, onMounted } from 'vue'
+    import { defineProps } from 'vue'
 
-    const props = defineProps<{
-        cardName: string,
-        deviceType: DeviceType,
-        deviceProperties: Object
+    defineProps<{
+        p_cardData : CardData
     }>();
-
-    onMounted(() => {
-        console.log("UserState: " + props.cardName + " deviceType: " + props.deviceType + " properties: " + props.deviceProperties);
-    })
 
 </script>
 

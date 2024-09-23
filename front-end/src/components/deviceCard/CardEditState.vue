@@ -56,7 +56,7 @@
     import type { CardData } from '../common/Interfaces'
     import { DeviceTypeUtils } from '../common/EnumUtils';
 
-    import { ref, defineEmits, onUpdated } from 'vue'
+    import { ref, defineEmits, onUpdated, onMounted } from 'vue'
 
     const props = defineProps<{
         cardDataProp : CardData
@@ -77,9 +77,22 @@
     const deviceCodeElements = ref<HTMLInputElement[]>([]);
     const editiOptionsDivElement = ref<HTMLDivElement>();
 
-    let wasShown = false;
+    onMounted(() => {
+        if (props.cardDataProp.name != "") {
+            cardName.value = props.cardDataProp.name;
 
-    //Events
+            if (deviceTypeElement.value && props.cardDataProp.deviceType > 0) {
+                deviceTypeElement.value.selectedIndex = props.cardDataProp.deviceType - 1;
+            }
+
+            for (let i = 0; i < props.cardDataProp.code.length; i++) {
+                if (deviceCodeElements.value) {
+                    deviceCodeElements.value[i].value = props.cardDataProp.code[i].toString();
+                }
+            }
+        }
+    });
+
     onUpdated(() => {
         if (editiOptionsDivElement.value) {
             const hasScrollBar = editiOptionsDivElement.value.offsetHeight < editiOptionsDivElement.value.scrollHeight;
@@ -89,23 +102,6 @@
             }
             else {
                 editiOptionsDivElement.value.style.paddingRight = "8%";
-            }
-        }
-
-        if (!wasShown) {
-            wasShown = true;
-            if (props.cardDataProp.name != "") {
-                cardName.value = props.cardDataProp.name;
-
-                if (deviceTypeElement.value && props.cardDataProp.deviceType > 0) {
-                    deviceTypeElement.value.selectedIndex = props.cardDataProp.deviceType - 1;
-                }
-
-                for (let i = 0; i < props.cardDataProp.code.length; i++) {
-                    if (deviceCodeElements.value) {
-                        deviceCodeElements.value[i].value = props.cardDataProp.code[i].toString();
-                    }
-                }
             }
         }
     });
@@ -201,9 +197,7 @@
     }
 
     function Cancel() {
-        wasShown = false;
         ClearFields();
-
         emit('cardEditCancelButtonClicked');
     }
 
@@ -216,8 +210,6 @@
         }
 
         if (isDataInputedCorrectely) {
-            wasShown = false;
-
             const retunrCardData : CardData = { 
                 id: props.cardDataProp.id,
                 name: cardName.value.toString(),

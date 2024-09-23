@@ -2,7 +2,7 @@
 <template>
     <div class="userPageContainer">
         <div class="userPageTopPanel">
-            <UserDash />
+            <UserDash :username="username" />
         </div>
 
         <div class="userPageInfo">
@@ -28,20 +28,23 @@
 
     let nextCardId = 1;
     let cardsId = ref<number[]>([]);
+    let username = "empty"
 
     const router = useRouter();
 
     onMounted(() => {
         let token = localStorage.getItem('token');
+
         if (token !== null) {
+            //Get user info
             axios.post('http://localhost:9000/get_user_page_info', {
                     token: token
             })
+            //Save user info and create cards
             .then(function (response) {
-                let username = response.data["username"];
+                username = response.data["username"];
                 let cards = response.data["card_ids"];
                 
-                console.log("Fortnite: ", response.data);
                 console.log("username: ", username, " cards: ", cards);
 
                 for (let ids in cards) {                    
@@ -49,16 +52,14 @@
                 }
             })
             .then(function() {
-	    	    console.log("Great: ", cardsId.value);
-
-                if (cardsId.value.length != 0) {
+                if (cardsId.value.length == 0) {
                     axios.post('http://localhost:9000/get_next_card_id', {
                         token : token
                     })
                     .then(function (response) {
                         console.log("Next card id: ", response.data);
                     })
-		    .catch(function (error) {
+		            .catch(function (error) {
                         console.log("Cath:",  error);
                     });
                 }
@@ -66,6 +67,7 @@
             .catch(function (error) {
                 console.log("Cath:",  error);
                 let status = error["response"].status;
+                //Create a enunm for codes
                 if (status == 401)
                 {
                     clearStorage();

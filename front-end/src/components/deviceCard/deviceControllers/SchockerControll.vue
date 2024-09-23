@@ -37,7 +37,8 @@
     import ThunderBoltIcon from '../../icons/ThunderBoltIcon.vue';
     import AddIcon from '../../icons/AddIcon.vue';
     import MinusIcon from '../../icons/MinusIcon.vue';
-    import { ref } from 'vue'
+    import { ref, defineProps, onMounted } from 'vue'
+import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
 
     let powerLevel = ref(5);
     let decreasePowerClicked = ref(false);
@@ -47,6 +48,15 @@
 
     let zapButtonClicked = ref(false);
     let mouseDonwOnZapButton = false;
+
+    const props = defineProps<{
+        properties: object;
+    }>();
+
+    onMounted(()=> {
+        let properties = props.properties[DeviceTypeToString(DeviceType.ShockCaller)];
+        powerLevel.value = properties.power;
+    });
 
     function DecreasePowerDown() {
         decreasePowerClicked.value = true;

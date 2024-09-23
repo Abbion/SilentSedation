@@ -9,7 +9,7 @@
                 ...
             </div>
             <div v-show="dashState" class="userName preventSelect">
-                Wiktor
+                {{ username }}
             </div>
         </div>
         <div class="line" v-show="dashState"></div>
@@ -31,6 +31,10 @@
     const router = useRouter();
     let dashState = ref(false)
     let cursorInsideDash = false;
+
+    defineProps<{
+        username : string
+    }>();
 
     function ToggleMore() {
         dashState .value= !dashState.value;

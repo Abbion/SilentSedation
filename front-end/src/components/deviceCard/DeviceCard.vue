@@ -7,14 +7,12 @@
     <CardAddState v-if="state == CardState.Add"></CardAddState>
 
     <CardEditState v-if="state == CardState.Edit" 
+                  :cardDataProp="cardData"
                   @cardEditAddButtonClicked="HandleEditStateData" 
-                  @cardEditCancelButtonClicked="HandleEditStateCancel"
-                 :cardDataProp="cardData"></CardEditState>
+                  @cardEditCancelButtonClicked="HandleEditStateCancel"></CardEditState>
 
     <CardUseState v-if="state == CardState.Use"
-                 :cardName="cardData.name"
-                 :deviceType="cardData.deviceType"
-                 :deviceProperties="cardData.deviceProperties"
+                  :p_cardData="cardData"
                   @cardOptionsClicked="GoToOptionState"></CardUseState>
 
     <CardOptionState v-if="state == CardState.Options"
@@ -52,15 +50,12 @@
     }>();
 
     let state = ref(CardState.Add);
-    let useStateComponent = ref<HTMLTemplateElement>();
     let cardContainerHTML = ref<HTMLDivElement>();
     let cardData : CardData = { id: -1, name: "", deviceType: DeviceType.None, deviceProperties: {}, code: [] };
     let cancelFromEdit = false;
     
     onMounted(()=>{
         cardData.id = props.cardId;
-
-        console.log("created device with id: ", props.cardId);
 
         let token = localStorage.getItem('token');
         if (token !== null) {
@@ -87,7 +82,6 @@
                         throw new Error("Device type has returned: " + device_type_array.length + " entries!");
                 
                     let device_type = device_type_array[0];
-                    let device_value: number = device_type_obj[device_type].power;
 
                     cardData.name = device_name;
                     cardData.deviceType = StringToDeviceType(device_type);
