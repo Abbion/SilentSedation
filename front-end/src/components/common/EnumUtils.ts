@@ -11,8 +11,8 @@ export const DeviceTypeUtils = {
 
     IndexToDeviceType(index : number) : DeviceType {
         switch (index) {
-            case 0:
-                return DeviceType.ElectricShocker;
+            case 1:
+                return DeviceType.ShockCaller;
             default:
                 return DeviceType.None;
         }

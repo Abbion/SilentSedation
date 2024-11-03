@@ -1,8 +1,11 @@
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, document, Bson, Document };
+use serde_json::Number;
+use crate::communication::requests::CardData;
 use crate::communication::{ requests, responses };
 use crate::database::{ to_document, UserId };
 use crate::utils::deviceTypes::{ DeviceType, ShockCallerData };
+use crate::constants;
 
 use super::CardId;
 
@@ -168,33 +171,89 @@ impl UserDataCollection {
                     Err(_) => { return None; }
                 };
 
-                let device_name = match card.get_str("device_name") {
-                    Ok(res) => res.to_string(),
-                    Err(_) => { return None; }
-                };
+                let device_type = DeviceType::new(device_type);
 
-                let resp = responses::GetCardDataResponse{
-                    card_id: card_id,
-                    device_name: device_name,
-                    device_type: DeviceType::SHOCK_CALLER(ShockCallerData{ power: 2 }),
-                    code: [1, 2, 3, 4, 5, 6]
-                 };
+                let resp = match device_type {
+                    DeviceType::EMPTY => {
+                        responses::GetCardDataResponse{
+                            card_id: card_id,
+                            device_name: String::new(),
+                            device_type: DeviceType::EMPTY,
+                            code: [0, 0, 0, 0, 0, 0]
+                        }
+                    },
+                    DeviceType::SHOCK_CALLER(_) =>
+                    {
+                        let device_name = match card.get_str("device_name") {
+                            Ok(res) => res.to_string(),
+                            Err(_) => { return None; }
+                            };
+
+                        let shock_power = match card.get_i32("power") {
+                            Ok(res) => res,
+                            Err(_) => { return None; }
+                        };
+
+                        let code = match card.get_str("code") {
+                            Ok(res) => {
+                                if res.len() != constants::DEVICE_CODE_LENGTH {
+                                    return  None;
+                                }
+
+                                res.to_string()
+                            },
+                            Err(_) => { return None; }
+                        };
+
+                        let mut code_arr :[u8;6] = [0; 6];
+                        for (index, number) in code.chars().enumerate() {
+                            code_arr[index] = match number.to_digit(10) {
+                                Some(num) => num as u8,
+                                None => return None,
+                            } 
+                        }
+
+                        responses::GetCardDataResponse{
+                            card_id: card_id,
+                            device_name: device_name,
+                            device_type: DeviceType::SHOCK_CALLER(Some(ShockCallerData{ power: shock_power as u8 })),
+                            code: code_arr
+                        }
+                    }
+                };
 
                 return Some(resp);
             },
             None => { return None; }
         };
     }
+    
+    pub async fn update_card(&self, user_id: UserId, card_data: &CardData) {
+        let filter = doc! {
+            "$and": [
+                { "_id": user_id._id},
+                { "cards.id": Bson::Int64(card_data.id) }
+            ]
+        };
 
-pub async fn update_card() {
+        let update = doc! {
+            "$set" : {
+                "cards.$.device_type" : card_data.deviceType ,
+                "cards.$.device_name" : card_data.name.clone(),
+                "cards.$.power" : 2 ,
+                "cards.$.code" : "2137"
+             }
+        };
+
+        let update_resolt = self.collection.update_one(filter, update,None).await;
+        println!("{:?}", update_resolt);
+    }
+
+pub async fn create_card(&self, user_id: UserId) {
 
 }
 
-pub async fn create_new_card() {
-
-}
-
-pub async fn delete_card() {
+pub async fn delete_card(&self, user_id: UserId, card_id : CardId) {
 
 }
 }

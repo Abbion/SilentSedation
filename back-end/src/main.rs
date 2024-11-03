@@ -7,6 +7,7 @@ use database::UserId;
 use mongodb::Database;
 use private::PrivateKeys;
 
+mod constants;
 mod auth;
 mod private;
 mod communication;
@@ -204,7 +205,7 @@ async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: 
 
 #[post("/get_card")]
 async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<AppState>) -> impl Responder {
-    let db = match data.db.lock() {
+    let db: std::sync::MutexGuard<'_, Database> = match data.db.lock() {
         Ok(db) => db,
         Err(e) => {
             eprint!("{}", e);
@@ -257,6 +258,42 @@ async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<App
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
 }
 
+#[post("/create_card")]
+async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match data.db.lock() {
+        Ok(db) => db,
+        Err(e) => {
+            eprint!("{}", e);
+            return HttpResponse::InternalServerError().body("Internal get card error: 1");
+        }
+    };
+
+    let token = &body.token;
+    let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
+
+    let user_token = match user_token_result {
+        Ok(user_token) => user_token.claims,
+        Err(e) => {
+            println!("{}", e);
+            return HttpResponse::Unauthorized().body("User token dedode failed");
+        }
+    };
+
+    let user_id = match UserId::from_str(&user_token.sub) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal get card error: 2");
+        }
+    };
+
+    let card_data = &body.card_data;
+
+    let user_data_collection = database::get_collections(&db).await;
+    let res = user_data_collection.update_card(user_id, card_data).await;
+
+    HttpResponse::Ok().content_type(ContentType::json()).body("{}")
+}
+
 async fn initialize() -> (Database, PrivateKeys) {
     let db_handle = tokio::spawn(async {
         database::connect_to_database().await
@@ -307,6 +344,7 @@ async fn main() -> std::io::Result<()> {
         .service(get_user_page_info)
         .service(get_next_card_id)
         .service(get_card)
+        .service(create_card)
         .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)

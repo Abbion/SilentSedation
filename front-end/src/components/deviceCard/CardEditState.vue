@@ -57,6 +57,7 @@
     import { DeviceTypeUtils } from '../common/EnumUtils';
 
     import { ref, defineEmits, onUpdated, onMounted } from 'vue'
+import { DeviceType } from '../common/Enums';
 
     const props = defineProps<{
         cardDataProp : CardData
@@ -206,20 +207,21 @@
 
         let index = 0;
         if (deviceTypeElement.value) {
-            index = deviceTypeElement.value.selectedIndex;
+            index = deviceTypeElement.value.selectedIndex + 1;
         }
 
         if (isDataInputedCorrectely) {
-            const retunrCardData : CardData = { 
+            const returnCardData : CardData = { 
                 id: props.cardDataProp.id,
                 name: cardName.value.toString(),
                 deviceType: DeviceTypeUtils.IndexToDeviceType(index),
+                deviceProperties: {},
                 code: deviceCodeElements.value.filter(element => element).map(element => { return parseInt(element.value)}),
              };
 
              ClearFields();
 
-            emit('cardEditAddButtonClicked', retunrCardData);
+            emit('cardEditAddButtonClicked', returnCardData);
         }
     }
 

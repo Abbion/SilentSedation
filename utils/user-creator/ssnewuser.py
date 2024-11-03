@@ -14,13 +14,8 @@ def add_card():
         should_add_card = should_add_card.upper()
 
         if should_add_card == "Y":
-            device_name = input("Device name: ")
-
-            if not device_name.isalnum():
-                print("Device name not allowed! Use only alpha numeric values")
-                continue
-
             print("Select type")
+            print("0. Empty")
             print("1. Schock coller")
 
             device_type = input("Type: ")
@@ -29,14 +24,30 @@ def add_card():
                 print("Incorrect device type!")
                 continue
             
-            if int(device_type) < 1 or int(device_type) > 1:
+            device_type = int(device_type)
+
+            if device_type < 0 or device_type > 1:
                 print("Device type out of range")
                 continue
 
             if len(cards) > 0:
                 cards += ", "
 
-            cards += "{id: Long(" + str(next_id) + "), device_type: " + device_type + ", device_name: \"" + device_name + "\"}"
+            cards += "{id: Long(" + str(next_id) + "), device_type: " + str(device_type)
+            
+            if device_type != 0:
+                device_name = input("Device name: ")
+
+                if not device_name.isalnum():
+                    print("Device name not allowed! Use only alpha numeric values")
+                    continue
+
+                cards += ", device_name: \"" + device_name + "\""
+           
+                if device_type == 1:
+                    cards += ", power: 5"
+
+            cards += ", code: \"123456\"}"
             next_id += 1
 
         else:

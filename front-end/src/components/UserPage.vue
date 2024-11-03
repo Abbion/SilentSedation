@@ -14,7 +14,7 @@
         </div>
 
         <div class="userPageContent">
-            <DeviceCard v-for="(id) in cardsId" :key="id" :cardId="id" @cardCreated="AddNewCard" @cardRemoved="RemoveCard"/>
+            <DeviceCard v-for="(id) in cardsId" :key="id" :cardId="id" @cardCreated="AddEmptyCard" @cardRemoved="RemoveCard"/>
         </div>
     </div>
 </template>
@@ -25,8 +25,8 @@
     import { useRouter } from 'vue-router';
     import { onMounted, ref } from 'vue';
     import axios from 'axios';
+import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
 
-    let nextCardId = 1;
     let cardsId = ref<number[]>([]);
     let username = "empty"
 
@@ -89,9 +89,17 @@
         router.replace('/');
     }
 
-    function AddNewCard() {
-        cardsId.value.push(nextCardId);
-        nextCardId++;
+    function AddEmptyCard() {
+        let token = localStorage.getItem('token');
+
+        axios.post('http://localhost:9000/get_next_card_id',{
+            token: token
+        }).then(function(response){
+            let next_id = response.data["next_id"];
+            cardsId.value.push(next_id);
+        }).catch(function(error){
+            console.log("User page - Add empty card error: ", error);
+        })
     }
 
     function RemoveCard(id: number) {

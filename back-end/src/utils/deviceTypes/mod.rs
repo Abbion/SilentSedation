@@ -1,11 +1,21 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Debug)]
-pub  struct ShockCallerData{
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+pub struct ShockCallerData{
     pub power : u8
 }
 
-#[derive(Serialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub enum DeviceType{
-    SHOCK_CALLER(ShockCallerData)
+    EMPTY,
+    SHOCK_CALLER(Option<ShockCallerData>)
+}
+
+impl DeviceType {
+    pub fn new(type_id: i32) -> DeviceType {
+        match type_id {
+            1 => return DeviceType::SHOCK_CALLER(None),
+            _ => return DeviceType::EMPTY
+        }
+    }
 }

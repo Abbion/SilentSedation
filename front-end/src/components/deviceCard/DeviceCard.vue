@@ -64,6 +64,8 @@
                     card_id: cardData.id
             })
             .then(function (response) {
+                console.log(response.data);
+
                 let card_id = response.data["card_id"];
                 let device_name = response.data["device_name"];
 
@@ -137,7 +139,28 @@
         GoToUseState();
 
         if (firstEdit) {
-            emit('cardCreated');
+            console.log("Create card post: ", cardData);
+            
+            let token = localStorage.getItem('token');
+
+            if (token === null) {
+                console.log("Device card - Handle edit state data error: token is null");
+                return;
+            }
+
+            axios.post('http://localhost:9000/create_card',{
+                token: token,
+                card_data : cardData
+            }).then(function() {
+                console.log("Here");
+                
+                //console.log("Add card response: ", respose);
+                //emit('cardCreated');
+            }).catch(function(error){
+                console.log("Device card - Handle edit state data error: ", error);
+                
+            })
+
         }
     }
     
