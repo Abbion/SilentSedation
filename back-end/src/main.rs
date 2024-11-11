@@ -1,11 +1,12 @@
 use std::sync::Mutex;
 
 use actix_cors::Cors;
-use actix_web::{get, http::header::ContentType, post, web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, http::header::ContentType, post, web::{self, Data}, App, HttpResponse, HttpServer, Responder};
 use communication::{ requests, responses };
 use database::UserId;
 use mongodb::Database;
 use private::PrivateKeys;
+use database::error_types::DatabaseError;
 
 mod constants;
 mod auth;
@@ -289,9 +290,20 @@ async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Da
     let card_data = &body.card_data;
 
     let user_data_collection = database::get_collections(&db).await;
-    let res = user_data_collection.update_card(user_id, card_data).await;
+    let card_update_result = user_data_collection.update_card(user_id, card_data).await;
 
-    HttpResponse::Ok().content_type(ContentType::json()).body("{}")
+    match card_update_result {
+        Ok(_) => {
+            HttpResponse::Ok().content_type(ContentType::json()).body("Card updated successfuly")
+        },
+        Err(e) => {
+            match e {
+                DatabaseError::CodeParsingFailed => {
+                    HttpResponse::InternalServerError().body("Internal update card error: 3")
+                },
+            }
+        }
+    }
 }
 
 async fn initialize() -> (Database, PrivateKeys) {

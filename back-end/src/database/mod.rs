@@ -4,6 +4,7 @@ use std::str::FromStr;
 use mongodb::{ options::ClientOptions, Client, Database };
 use user_data::UserDataCollection;
 
+pub mod error_types;
 mod user_data;
 
 use serde::{Serialize, Deserialize};

@@ -1,3 +1,6 @@
+use core::num;
+
+use mongodb::options::UpdateSearchIndexOptions;
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, document, Bson, Document };
 use serde_json::Number;
@@ -6,7 +9,9 @@ use crate::communication::{ requests, responses };
 use crate::database::{ to_document, UserId };
 use crate::utils::deviceTypes::{ DeviceType, ShockCallerData };
 use crate::constants;
+use crate::database::error_types;
 
+use super::error_types::DatabaseError;
 use super::CardId;
 
 pub struct UserDataCollection {
@@ -171,7 +176,7 @@ impl UserDataCollection {
                     Err(_) => { return None; }
                 };
 
-                let device_type = DeviceType::new(device_type);
+                let device_type = DeviceType::new(device_type as i64);
 
                 let resp = match device_type {
                     DeviceType::EMPTY => {
@@ -228,7 +233,7 @@ impl UserDataCollection {
         };
     }
     
-    pub async fn update_card(&self, user_id: UserId, card_data: &CardData) {
+    pub async fn update_card(&self, user_id: UserId, card_data: &CardData) -> Result<(), DatabaseError> {
         let filter = doc! {
             "$and": [
                 { "_id": user_id._id},
@@ -236,24 +241,49 @@ impl UserDataCollection {
             ]
         };
 
-        let update = doc! {
-            "$set" : {
-                "cards.$.device_type" : card_data.deviceType ,
-                "cards.$.device_name" : card_data.name.clone(),
-                "cards.$.power" : 2 ,
-                "cards.$.code" : "2137"
-             }
+        let mut update_doc = doc! {
+            "cards.$.device_type" : card_data.deviceType as i32,
+            "cards.$.device_name" : card_data.name.clone()
         };
 
-        let update_resolt = self.collection.update_one(filter, update,None).await;
+        match DeviceType::new(card_data.deviceType) {
+            DeviceType::SHOCK_CALLER(_) => {
+                if let Some(power) = card_data.deviceProperties.get("power").and_then(|v| v.as_i64()) {
+                    update_doc.insert("cards.$.power", power as i32);
+                }
+                else {
+                    update_doc.insert("cards.$.power", 2 as i32);
+                }
+            },
+            _ => {}
+        };
+
+        let code_str = card_data.code
+            .iter()
+            .map(|num| num.to_string())
+            .collect::<Vec<String>>()
+            .join("");
+
+        if code_str.len() != 6 {
+            return Err(DatabaseError::CodeParsingFailed);
+        }
+
+        update_doc.insert("cards.$.code", code_str);
+
+        println!("{:?}", update_doc);
+
+        let update_doc_set = doc! {"$set" : update_doc};
+        let update_resolt = self.collection.update_one(filter, update_doc_set,None).await;
         println!("{:?}", update_resolt);
+
+        Ok(())
     }
 
-pub async fn create_card(&self, user_id: UserId) {
+//pub async fn create_card(&self, user_id: UserId) {
 
-}
+//}
 
-pub async fn delete_card(&self, user_id: UserId, card_id : CardId) {
+//pub async fn delete_card(&self, user_id: UserId, card_id : CardId) {
 
-}
+//}
 }

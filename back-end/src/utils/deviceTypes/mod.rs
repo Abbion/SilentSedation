@@ -12,7 +12,7 @@ pub enum DeviceType{
 }
 
 impl DeviceType {
-    pub fn new(type_id: i32) -> DeviceType {
+    pub fn new(type_id: i64) -> DeviceType {
         match type_id {
             1 => return DeviceType::SHOCK_CALLER(None),
             _ => return DeviceType::EMPTY
