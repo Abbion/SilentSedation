@@ -148,7 +148,7 @@
                 return;
             }
 
-            axios.post('http://localhost:9000/create_card',{
+            axios.post('http://localhost:9000/update_card',{
                 token: token,
                 card_data : cardData
             }).then(function() {

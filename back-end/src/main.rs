@@ -259,8 +259,8 @@ async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<App
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
 }
 
-#[post("/create_card")]
-async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Data<AppState>) -> impl Responder {
+#[post("/update_card")]
+async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Data<AppState>) -> impl Responder {
     let db = match data.db.lock() {
         Ok(db) => db,
         Err(e) => {
@@ -356,7 +356,7 @@ async fn main() -> std::io::Result<()> {
         .service(get_user_page_info)
         .service(get_next_card_id)
         .service(get_card)
-        .service(create_card)
+        .service(update_card)
         .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)

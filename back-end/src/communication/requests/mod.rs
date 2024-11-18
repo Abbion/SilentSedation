@@ -30,7 +30,7 @@ pub struct CardData {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct CreateCardRequest {
+pub struct UpdateCardRequest {
     pub token : String,
     pub card_data : CardData
 }
