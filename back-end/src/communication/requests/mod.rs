@@ -1,4 +1,5 @@
-use crate::utils::deviceTypes::DeviceType;
+use std::str;
+
 use serde_json::Value;
 
 use serde::{Deserialize, Serialize};
@@ -24,8 +25,8 @@ pub struct LoginUserRequest {
 pub struct CardData {
     pub id : i64,
     pub name : String,
-    pub deviceType : i64,
-    pub deviceProperties: Value,
+    pub device_type : i64,
+    pub device_properties: Value,
     pub code : [u8; 6]
 }
 
@@ -33,4 +34,9 @@ pub struct CardData {
 pub struct UpdateCardRequest {
     pub token : String,
     pub card_data : CardData
+}
+
+#[derive(Deserialize, Debug)]
+pub struct CreateCardRequest {
+    pub token : String
 }

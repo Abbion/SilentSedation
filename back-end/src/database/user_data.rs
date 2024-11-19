@@ -1,15 +1,13 @@
-use core::num;
+use std::os::linux::raw::stat;
 
-use mongodb::options::UpdateSearchIndexOptions;
 use mongodb::{ options::FindOneOptions, Collection, Database };
-use bson::{ doc, document, Bson, Document };
-use serde_json::Number;
+use bson::{ doc, Bson, Document };
 use crate::communication::requests::CardData;
+use crate::communication::responses::CreateCardResponse;
 use crate::communication::{ requests, responses };
 use crate::database::{ to_document, UserId };
-use crate::utils::deviceTypes::{ DeviceType, ShockCallerData };
+use crate::utils::device_types::{ DeviceType, ShockCallerData };
 use crate::constants;
-use crate::database::error_types;
 
 use super::error_types::DatabaseError;
 use super::CardId;
@@ -179,15 +177,15 @@ impl UserDataCollection {
                 let device_type = DeviceType::new(device_type as i64);
 
                 let resp = match device_type {
-                    DeviceType::EMPTY => {
+                    DeviceType::Empty => {
                         responses::GetCardDataResponse{
                             card_id: card_id,
                             device_name: String::new(),
-                            device_type: DeviceType::EMPTY,
+                            device_type: DeviceType::Empty,
                             code: [0, 0, 0, 0, 0, 0]
                         }
                     },
-                    DeviceType::SHOCK_CALLER(_) =>
+                    DeviceType::ShockCaller(_) =>
                     {
                         let device_name = match card.get_str("device_name") {
                             Ok(res) => res.to_string(),
@@ -221,7 +219,7 @@ impl UserDataCollection {
                         responses::GetCardDataResponse{
                             card_id: card_id,
                             device_name: device_name,
-                            device_type: DeviceType::SHOCK_CALLER(Some(ShockCallerData{ power: shock_power as u8 })),
+                            device_type: DeviceType::ShockCaller(Some(ShockCallerData{ power: shock_power as u8 })),
                             code: code_arr
                         }
                     }
@@ -233,6 +231,59 @@ impl UserDataCollection {
         };
     }
     
+    pub async fn create_card(&self, user_id: UserId) -> Option<CreateCardResponse> {
+        let filter = match to_document(&user_id) {
+            Some(f) => f,
+            None => { return None; }
+        };
+
+        let find_options = FindOneOptions::builder().projection(doc! { "next_card_id": 1 }).build();
+        let find_result = self.collection.find_one(filter.clone(), find_options).await;
+
+        let fr = match find_result {
+            Ok(fr) => fr,
+            Err(e) => {
+                eprintln!("Getting unsers next card id failed: {}", e);
+                return None;
+            }
+        };
+
+        let next_card_id = match fr {
+            Some(data) => {
+                let next_card_id = match data.get_i64("next_card_id") {
+                    Ok(res) => res,
+                    Err(_) => { return None; }
+                    };
+
+                next_card_id
+            },
+            None => { return None; }
+        };
+
+        let increment_card_id = doc!{"$inc": { "next_card_id" : 1 }};
+        let increment_status = self.collection.update_one(filter.clone(), increment_card_id, None).await;
+
+        let match_count = match increment_status {
+            Ok(result) => result.matched_count,
+            Err(_) => return None
+        };
+
+        if match_count != 1 {
+            return None;
+        }
+
+        let add_empty_card = doc! {"$push" : {"cards" : { "id": next_card_id, "device_type": 0 }}};
+        let push_status = self.collection.update_one(filter, add_empty_card, None).await;
+
+        let match_count = match push_status {
+            Ok(result) => result.matched_count,
+            Err(_) => return None
+        };
+
+        Some(CreateCardResponse{ card_id: next_card_id })
+    }
+
+
     pub async fn update_card(&self, user_id: UserId, card_data: &CardData) -> Result<(), DatabaseError> {
         let filter = doc! {
             "$and": [
@@ -242,13 +293,13 @@ impl UserDataCollection {
         };
 
         let mut update_doc = doc! {
-            "cards.$.device_type" : card_data.deviceType as i32,
+            "cards.$.device_type" : card_data.device_type as i32,
             "cards.$.device_name" : card_data.name.clone()
         };
 
-        match DeviceType::new(card_data.deviceType) {
-            DeviceType::SHOCK_CALLER(_) => {
-                if let Some(power) = card_data.deviceProperties.get("power").and_then(|v| v.as_i64()) {
+        match DeviceType::new(card_data.device_type) {
+            DeviceType::ShockCaller(_) => {
+                if let Some(power) = card_data.device_properties.get("power").and_then(|v| v.as_i64()) {
                     update_doc.insert("cards.$.power", power as i32);
                 }
                 else {
@@ -273,15 +324,15 @@ impl UserDataCollection {
         println!("{:?}", update_doc);
 
         let update_doc_set = doc! {"$set" : update_doc};
-        let update_resolt = self.collection.update_one(filter, update_doc_set,None).await;
-        println!("{:?}", update_resolt);
+        let update_result = self.collection.update_one(filter, update_doc_set,None).await;
+        println!("{:?}", update_result);
+
+        //Handle bad update result
 
         Ok(())
     }
 
-//pub async fn create_card(&self, user_id: UserId) {
 
-//}
 
 //pub async fn delete_card(&self, user_id: UserId, card_id : CardId) {
 

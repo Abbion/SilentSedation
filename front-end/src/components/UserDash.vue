@@ -1,21 +1,21 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="dashContainer" :class="[ dashState ? 'dashContainerOpen' : 'dashContainerClose']" @mouseenter="cursorInsideDash = true" @mouseleave="cursorInsideDash = false">
-        <div id="userInfo" class="userAccount cursorPointer" @click="ToggleMore">
-            <div class="userIconBox">
-                <userIcon class="userIcon" />
+    <div class="s_DashContainer" :class="[ dash_state ? 's_DashContainerOpen' : 's_DashContainerClose']" @mouseenter="cursor_inside_dash = true" @mouseleave="cursor_inside_dash = false">
+        <div id="s_UserInfo" class="s_UserAccount s_CursorPointer" @click="ToggleMore">
+            <div class="s_UserIconBox">
+                <userIcon class="s_UserIcon" />
             </div>
-            <div v-show="!dashState" class="more preventSelect">
+            <div v-show="!dash_state" class="s_More s_PreventSelect">
                 ...
             </div>
-            <div v-show="dashState" class="userName preventSelect">
+            <div v-show="dash_state" class="s_UserName s_PreventSelect">
                 {{ username }}
             </div>
         </div>
-        <div class="line" v-show="dashState"></div>
-        <div id="logOut" class="logOut highlightElement cursorPointer preventSelect" v-show="dashState" @click="LogOut">
-            <LogOutIcon class="logOutIcon"/>
-            <p id="logOutText">
+        <div class="s_Line" v-show="dash_state"></div>
+        <div class="s_LogOut s_HighlightElement s_CursorPointer s_PreventSelect" v-show="dash_state" @click="LogOut">
+            <LogOutIcon class="s_LogOutIcon"/>
+            <p>
                 log out
             </p>
         </div>
@@ -29,30 +29,30 @@
     import { useRouter } from 'vue-router';
 
     const router = useRouter();
-    let dashState = ref(false)
-    let cursorInsideDash = false;
+    let dash_state = ref(false)
+    let cursor_inside_dash : boolean = false;
 
     defineProps<{
         username : string
     }>();
 
     function ToggleMore() {
-        dashState .value= !dashState.value;
+        dash_state .value= !dash_state.value;
     }
 
     function LogOut() {
         router.replace('/')
     }
 
-    document.onmousedown = function(e) {        
-        if (!cursorInsideDash) {
-            dashState .value = false;
+    document.onmousedown = function(_) {
+        if (!cursor_inside_dash) {
+            dash_state .value = false;
         }
     }
 </script>
 
 <style scoped>
-    .dashContainer {
+    .s_DashContainer {
         margin-left: 35px;
         margin-top: 30px;
 
@@ -68,17 +68,17 @@
         font-size: 18px;
     }
 
-    .dashContainerClose {
+    .s_DashContainerClose {
         height: 28px;
         width: 60px;
     }
 
-    .dashContainerOpen {
+    .s_DashContainerOpen {
         height: 57px;
         width: 130px;
     }
 
-    .userAccount {
+    .s_UserAccount {
         height: 28px;
         width: 100%;
 
@@ -87,7 +87,7 @@
         align-items: center;
     }
 
-    .userIconBox {
+    .s_UserIconBox {
         background-color: var(--color-main-light);
 
         height: 20px;
@@ -106,7 +106,7 @@
         z-index: -1;
     }
 
-    .userIcon {
+    .s_UserIcon {
         fill: var(--color-main-dark);
 
         height: 80%;
@@ -117,7 +117,7 @@
         z-index: -1;
     }
 
-    .more {
+    .s_More {
         color: var(--color-main-light);
 
         transform: translate(0px, -2px);
@@ -126,14 +126,14 @@
         z-index: -1;
     }
 
-    .userName {
+    .s_UserName {
         color: var(--color-main-light);
 
         margin-right: 10px;
         z-index: -1;
     }
 
-    .line {
+    .s_Line {
         background-color: var(--color-main-light);
         opacity: 50%;
 
@@ -144,7 +144,7 @@
         margin-right: auto;
     }
 
-    .logOut {
+    .s_LogOut {
         height: 28px;
         width: 100%;
 
@@ -155,12 +155,12 @@
         align-items: center;
     }
 
-    .logOut > p {
+    .s_LogOut > p {
         color: var(--color-main-light);
         margin-left: 5px;
     }
 
-    .logOutIcon {
+    .s_LogOutIcon {
         stroke: var(--color-main-light);
         margin-left: 3px;
     }

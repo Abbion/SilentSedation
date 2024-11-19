@@ -1,16 +1,16 @@
 <template>
-    <div class="loginActions">
-        <div class="namedCheckBox">
-            <div class="checkbox" @click="SwitchCheck">
-                <CheckIcon class="checkIcon" v-show="isChecked" />
+    <div class="s_LoginActions">
+        <div class="s_NamedCheckBox">
+            <div class="s_Checkbox" @click="SwitchCheck">
+                <CheckIcon class="s_CheckIcon" v-show="is_checked" />
             </div>
 
-            <div class="checkBoxText preventSelect">
+            <div class="s_CheckBoxText s_PreventSelect">
                 Remember me
             </div>
         </div>
 
-        <div class="logInButton cursorPointer" @click="$emit('logInButtonClicked')">
+        <div class="s_LogInButton s_CursorPointer" @click="$emit('LogInButtonClicked')">
             log in
         </div>
     </div>
@@ -18,23 +18,22 @@
 
 <script setup lang="ts">
     import CheckIcon from './icons/CheckIcon.vue'
-
     import { ref } from 'vue'
 
     //Needs to be used when defineModel is used
-    defineEmits(['logInButtonClicked']);
+    defineEmits(['LogInButtonClicked']);
 
-    let isChecked = ref(false);
-    let rememberMe = defineModel<boolean>();
+    let is_checked = ref(false);
+    let remember_me = defineModel<boolean>();
 
     function SwitchCheck() {
-        isChecked.value = !isChecked.value;  
-        rememberMe.value = isChecked.value;
+        is_checked.value = !is_checked.value;  
+        remember_me.value = is_checked.value;
     }
 </script>
 
 <style scoped>
-    .loginActions {
+    .s_LoginActions {
         margin-top: 10px;
 
         display: flex;
@@ -43,14 +42,14 @@
         justify-content: space-between;
     }
 
-    .namedCheckBox {
+    .s_NamedCheckBox {
         display: flex;
         flex-direction: row;
         justify-content: center;
         align-items: center;
     }
 
-    .checkbox {
+    .s_Checkbox {
         height: 16px;
         width: 16px;
 
@@ -67,22 +66,22 @@
         justify-content: center;
     }
 
-    .checkbox:hover {
+    .s_Checkbox:hover {
         cursor: pointer;
     }
 
-    .checkIcon {
+    .s_CheckIcon {
         height: 70%;
         width: 70%;
       
         fill: #EAEAEA;
     }
 
-    .checkBoxText {
+    .s_CheckBoxText {
         color: #EAEAEA;
     }
 
-    .logInButton {
+    .s_LogInButton {
         background-color: #EAEAEA;
         color: #00040D;
 

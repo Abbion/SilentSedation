@@ -1,16 +1,17 @@
+//Rework 2.0
 <template>
-    <div class="centerContentVertical">
-        <p class="preventSelect">
-            {{ cardName }}
+    <div class="s_CenterContentVertical">
+        <p class="s_PreventSelect">
+            {{ p_card_name }}
         </p>
-        <div class="roundButton highlightElement cursorPointer" @click="$emit('cardOptionsEditButtonClicked')">
+        <div class="s_RoundButton s_HighlightElement s_CursorPointer" @click="$emit('CardOptionsEditButtonClicked')">
             <EditIcon class="editIcon"/>
         </div>
-        <div class="roundButton highlightElement cursorPointer" @click="$emit('cardOptionsDeleteButtonClicked')">
+        <div class="roundButton highlightElement cursorPointer" @click="$emit('CardOptionsDeleteButtonClicked')">
             <TrashIcon class="trashIcon"/>
         </div>
-        <div class="roundButton highlightElement cursorPointer" @click="$emit('cardOptionsReturnButtonClicked')">
-            <GoBackIcon class="goBackIcon" />
+        <div class="s_RoundButton s_HighlightElement s_CursorPointer" @click="$emit('CardOptionsReturnButtonClicked')">
+            <GoBackIcon class="s_GoBackIcon" />
         </div>
     </div>
 </template>
@@ -23,7 +24,7 @@
     import { defineProps } from 'vue'
 
     defineProps<{
-        cardName: string
+        p_card_name: string
     }>();
 </script>
 
@@ -32,7 +33,7 @@
         color: var(--color-main-light);
     }
 
-    .roundButton {
+    .s_RoundButton {
         width: 60px;
         height: 60px;
 
@@ -49,19 +50,19 @@
         align-items: center;
     }
 
-    .editIcon {
+    .s_EditIcon {
         stroke: var(--color-main-light);
 
         height: 45%;
         width: 45%;
     }
 
-    .trashIcon {
+    .s_TrashIcon {
         height: 50%;
         width: 50%;
     }
 
-    .goBackIcon {
+    .s_GoBackIcon {
         fill: var(--color-main-light);
 
         height: 50%;

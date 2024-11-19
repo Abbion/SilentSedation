@@ -1,3 +1,4 @@
+/*Rework 2.0*/
 :root {
   --color-error: #db5656;
   --color-main-dark: #00040F;
@@ -28,32 +29,31 @@ body {
   border-radius: 10px;
 }
 
-.preventSelect {
+.s_PreventSelect {
   -webkit-user-select: none; /* Safari */
   -ms-user-select: none; /* IE 10 and IE 11 */
   user-select: none; /* Standard syntax */
 }
 
-.centerContentVertical {
+.s_CenterContentVertical {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-.centerContentHorizontal {
+.s_CenterContentHorizontal {
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
 }
 
-
-.cursorPointer:hover {
+.s_CursorPointer:hover {
   cursor: pointer;
 }
 
-.highlightElement:hover {
+.s_HighlightElement:hover {
   background-color: var(--color-main-dark--highlight);
 }
 

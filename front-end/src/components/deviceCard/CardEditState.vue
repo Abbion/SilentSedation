@@ -1,49 +1,49 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="mainCardEditContainer">
-        <div ref="editiOptionsDivElement" class="editOptions">
-            <div class="cardNameInput">
-                <input v-model="cardName" type="text" placeholder="device name"/>
-                <div class="cardNameInputLine" :class="{'errorMarkerBg' : cardNameError}"></div>
+    <div class="s_MainCardEditContainer">
+        <div ref="editi_options_div_element" class="s_EditOptions">
+            <div class="s_CardNameInput">
+                <input v-model="card_name" type="text" placeholder="device name"/>
+                <div class="s_CardNameInputLine" :class="{'s_ErrorMarkerBg' : card_name_error}"></div>
             </div>
 
-            <div class="deviceTypeSelector">
-                <p class="preventSelect">
+            <div class="s_DeviceTypeSelector">
+                <p class="s_PreventSelect">
                     device type
                 </p>
-                <select ref="deviceTypeElement" class="deviceTypeSelectorInput">
-                    <option v-for="(option, index) in deviceOptions" :key="index" :value="option.value">
+                <select ref="device_type_element" class="s_DeviceTypeSelectorInput">
+                    <option v-for="(option, index) in device_options" :key="index" :value="option.value">
                         {{ option.label }}
                     </option>
                 </select>
             </div>
 
             <div>
-                <p class="preventSelect">
+                <p class="s_PreventSelect">
                     device code
                 </p>
-                <div class="deviceCodeInput">
-                    <div class="deviceCodeInputField" :class="{ errorOutline : deviceCodeError }" v-for="(_, index) in 6">
-                        <input class="deviceCodeFieldInput" ref="deviceCodeElements" :key="index" type="text" maxlength="1"
+                <div class="s_DeviceCodeInput">
+                    <div class="s_DeviceCodeInputField" :class="{ errorOutline : device_code_error }" v-for="(_, index) in 6">
+                        <input class="s_DeviceCodeFieldInput" ref="device_code_elements" :key="index" type="text" maxlength="1"
                             @keydown="CodeDigitEntered($event as KeyboardEvent, index)"
                             @input="HandleCodeInput($event as InputEvent, index)"/>
                     </div>
                 </div>
             </div>
 
-            <ul class="errorMessages">
-                <li v-for="(errorMessage, index) in errorMessages" :key="index" class="errorMessage">
+            <ul class="s_EkrrorMessages">
+                <li v-for="(errorMessage, index) in error_messages" :key="index" class="s_ErrorMessage">
                     {{ errorMessage }}
                 </li>
             </ul>
         </div>
 
-        <div class="actions">
-            <div class="actionBase actionClose highlightElement cursorPointer" @click="Cancel">
-                <DeleteIcon class="actionIconCancel" />
+        <div class="s_Actions">
+            <div class="s_ActionBase s_ActionClose s_HighlightElement s_CursorPointer" @click="Cancel">
+                <DeleteIcon class="s_ActionIconCancel" />
             </div>
-            <div class="actionBase actionApply highlightElement cursorPointer" @click="Add">
-                <CheckIcon class="actionIconAccept" />
+            <div class="s_ActionBase s_ActionApply s_HighlightElement s_CursorPointer" @click="Add">
+                <CheckIcon class="s_ActionIconAccept" />
             </div>
         </div>
     </div>
@@ -57,103 +57,100 @@
     import { DeviceTypeUtils } from '../common/EnumUtils';
 
     import { ref, defineEmits, onUpdated, onMounted } from 'vue'
-import { DeviceType } from '../common/Enums';
 
     const props = defineProps<{
-        cardDataProp : CardData
+        p_card_data : CardData
     }>();
 
     //Emiters
-    const emit = defineEmits(['cardEditAddButtonClicked', 'cardEditCancelButtonClicked']);
+    const emit = defineEmits(['CardEditAddButtonClicked', 'CardEditCancelButtonClicked']);
 
     //Variables
-    const deviceOptions = DeviceTypeUtils.CreateLabelsAndValues();
+    const device_options = DeviceTypeUtils.CreateLabelsAndValues();
 
-    let cardNameError = ref(false);
-    let deviceCodeError = ref(false);
-    let errorMessages = ref<string[]>([]);
+    let card_name_error = ref(false);
+    let device_code_error = ref(false);
+    let error_messages = ref<string[]>([]);
 
-    const cardName = ref<string>("");
-    const deviceTypeElement = ref<HTMLSelectElement>();
-    const deviceCodeElements = ref<HTMLInputElement[]>([]);
-    const editiOptionsDivElement = ref<HTMLDivElement>();
+    const card_name = ref<string>("");
+    const device_type_element = ref<HTMLSelectElement>();
+    const device_code_elements = ref<HTMLInputElement[]>([]);
+    const edit_options_div_element = ref<HTMLDivElement>();
 
     onMounted(() => {
-        if (props.cardDataProp.name != "") {
-            cardName.value = props.cardDataProp.name;
+        if (props.p_card_data.name != "") {
+            card_name.value = props.p_card_data.name;
 
-            if (deviceTypeElement.value && props.cardDataProp.deviceType > 0) {
-                deviceTypeElement.value.selectedIndex = props.cardDataProp.deviceType - 1;
+            if (device_type_element.value && props.p_card_data.device_type > 0) {
+                device_type_element.value.selectedIndex = props.p_card_data.device_type - 1;
             }
 
-            for (let i = 0; i < props.cardDataProp.code.length; i++) {
-                if (deviceCodeElements.value) {
-                    deviceCodeElements.value[i].value = props.cardDataProp.code[i].toString();
+            for (let i = 0; i < props.p_card_data.code.length; i++) {
+                if (device_code_elements.value) {
+                    device_code_elements.value[i].value = props.p_card_data.code[i].toString();
                 }
             }
         }
     });
 
     onUpdated(() => {
-        if (editiOptionsDivElement.value) {
-            const hasScrollBar = editiOptionsDivElement.value.offsetHeight < editiOptionsDivElement.value.scrollHeight;
+        if (edit_options_div_element.value) {
+            const has_scroll_bar = edit_options_div_element.value.offsetHeight < edit_options_div_element.value.scrollHeight;
             
-            if (hasScrollBar) {
-                editiOptionsDivElement.value.style.paddingRight = "calc(8% - 5px)";
-            }
-            else {
-                editiOptionsDivElement.value.style.paddingRight = "8%";
-            }
+            if (has_scroll_bar)
+                edit_options_div_element.value.style.paddingRight = "calc(8% - 5px)";
+            else
+                edit_options_div_element.value.style.paddingRight = "8%";
         }
     });
 
     //Functions
     //[TODO: Move this to a seperate .vue file]
     function CodeDigitEntered(event : KeyboardEvent, index : number) {   
-        const controlKeys = ["Backspace", "ArrowLeft", "ArrowRight"];
-        const isNumber = /^[0-9]$/.test(event.key);
+        const control_keys = ["Backspace", "ArrowLeft", "ArrowRight"];
+        const is_number = /^[0-9]$/.test(event.key);
         
         //Block input for other kays than numvers and control keys
-        if (!isNumber && !controlKeys.includes(event.key)) {
+        if (!is_number && !control_keys.includes(event.key)) {
             event.preventDefault();
             return;
         }
 
         //Handle controlKeys
-        if (isNumber) {
+        if (is_number) {
             return;
         }
 
-        const inputIsEmpty = deviceCodeElements.value[index].value === '';
+        const input_is_empty = device_code_elements.value[index].value === '';
 
-        if (inputIsEmpty)
+        if (input_is_empty)
         {
             //Backspace
-            if (event.key === controlKeys[0]) {
+            if (event.key === control_keys[0])
                 PreviousCodeInput(index);
-            }
+
             //LeftArrow
-            else if (event.key === controlKeys[1]) {
+            else if (event.key === control_keys[1]) {
                 PreviousCodeInput(index);
                 event.preventDefault();
             }
             //RightArrow
-            else if (event.key === controlKeys[2]) {
+            else if (event.key === control_keys[2]) {
                 NextCodeInput(index);
                 event.preventDefault();
             }
         }
         else
         {
-            const isCursorAtFront = deviceCodeElements.value[index].selectionStart === 0;    
+            const is_cursor_at_front = device_code_elements.value[index].selectionStart === 0;    
 
             //LeftArrow
-            if (isCursorAtFront && event.key === controlKeys[1]) {
+            if (is_cursor_at_front && event.key === control_keys[1]) {
                 PreviousCodeInput(index);
                 event.preventDefault();
             }
             //RightArrow
-            else if (!isCursorAtFront && event.key === controlKeys[2]) {
+            else if (!is_cursor_at_front && event.key === control_keys[2]) {
                 NextCodeInput(index);
                 event.preventDefault();
             }
@@ -170,151 +167,151 @@ import { DeviceType } from '../common/Enums';
 
     function PreviousCodeInput(index : number) {
         if (index > 0) {
-            deviceCodeElements.value[index - 1].focus();
+            device_code_elements.value[index - 1].focus();
         }
     }
 
     function NextCodeInput(index : number) {
-        if (index < deviceCodeElements.value.length - 1) {
-            deviceCodeElements.value[index + 1].focus();
+        if (index < device_code_elements.value.length - 1) {
+            device_code_elements.value[index + 1].focus();
         }
     }
 
     function ClearFields() {
-        cardName.value = "";
-        cardNameError.value = false;
+        card_name.value = "";
+        card_name_error.value = false;
 
-        if (deviceTypeElement.value !== undefined) {
-            deviceTypeElement.value.value = deviceOptions[0].value;
+        if (device_type_element.value !== undefined) {
+            device_type_element.value.value = device_options[0].value;
         }
 
-        for (let i = 0; i < deviceCodeElements.value.length; i++) {
-            deviceCodeElements.value[i].value = '';
+        for (let i = 0; i < device_code_elements.value.length; i++) {
+            device_code_elements.value[i].value = '';
         }
 
-        deviceCodeError.value = false;        
+        device_code_error.value = false;        
         
-        errorMessages.value = [];
+        error_messages.value = [];
     }
 
     function Cancel() {
         ClearFields();
-        emit('cardEditCancelButtonClicked');
+        emit('CardEditCancelButtonClicked');
     }
 
     function Add() {
-        let isDataInputedCorrectely = CheckIfDataIsInputed();
+        let is_data_inputed_correctely = CheckIfDataIsInputed();
 
         let index = 0;
-        if (deviceTypeElement.value) {
-            index = deviceTypeElement.value.selectedIndex + 1;
+        if (device_type_element.value) {
+            index = device_type_element.value.selectedIndex + 1;
         }
 
-        if (isDataInputedCorrectely) {
+        if (is_data_inputed_correctely) {
             const returnCardData : CardData = { 
-                id: props.cardDataProp.id,
-                name: cardName.value.toString(),
-                deviceType: DeviceTypeUtils.IndexToDeviceType(index),
-                deviceProperties: {},
-                code: deviceCodeElements.value.filter(element => element).map(element => { return parseInt(element.value)}),
+                id: props.p_card_data.id,
+                name: card_name.value.toString(),
+                device_type: DeviceTypeUtils.IndexToDeviceType(index),
+                device_properties: {},
+                code: device_code_elements.value.filter(element => element).map(element => { return parseInt(element.value)}),
              };
 
              ClearFields();
 
-            emit('cardEditAddButtonClicked', returnCardData);
+            emit('CardEditAddButtonClicked', returnCardData);
         }
     }
 
     function CheckIfDataIsInputed() {
-        errorMessages.value = [];
+        error_messages.value = [];
 
-        let isDataInputedCorrectely = CheckCardName();
-        isDataInputedCorrectely = CheckDeviceType() && isDataInputedCorrectely;
-        isDataInputedCorrectely = CheckDeviceCode() && isDataInputedCorrectely;
+        let is_data_inputed_correctely = CheckCardName();
+        is_data_inputed_correctely = CheckDeviceType() && is_data_inputed_correctely;
+        is_data_inputed_correctely = CheckDeviceCode() && is_data_inputed_correctely;
 
-        return isDataInputedCorrectely;
+        return is_data_inputed_correctely;
     }
 
     function CheckCardName() {
-        if (cardName.value !== undefined) {
-            const cardNameString = cardName.value;
-            let isNameInputCorrect = true;
+        if (card_name.value !== undefined) {
+            const card_name_string = card_name.value;
+            let is_name_input_correct = true;
 
-            if (cardNameString.length < 6 || cardNameString.length > 24) {
-                isNameInputCorrect = false;
-                errorMessages.value.push("Device name should contain [6 - 24] characters!");
+            if (card_name_string.length < 6 || card_name_string.length > 24) {
+                is_name_input_correct = false;
+                error_messages.value.push("Device name should contain [6 - 24] characters!");
             }
             
-            if (isNameInputCorrect) {
+            if (is_name_input_correct) {
                 //TODO Check if name is in database
                 //errorMessages.value.push("This device name already exists in your devices!");
             }
 
-            if (isNameInputCorrect) {
-                cardNameError.value = false;
+            if (is_name_input_correct) {
+                card_name_error.value = false;
                 return true;
             }
             else {
-                cardNameError.value = true;
+                card_name_error.value = true;
                 return false;
             }
         } 
         else {
-            cardNameError.value = true;
-            errorMessages.value.push("Device name is undefined. Internal Error!");
+            card_name_error.value = true;
+            error_messages.value.push("Device name is undefined. Internal Error!");
 
             return false;
         }
     }
 
     function CheckDeviceType() {
-        if (deviceTypeElement.value !== undefined) {
-            const deviceTypeValues: string[] = deviceOptions.map(option => option.value);
+        if (device_type_element.value !== undefined) {
+            const deviceTypeValues: string[] = device_options.map(option => option.value);
             
-            if (!(deviceTypeValues.includes(deviceTypeElement.value.value))) {
-                errorMessages.value.push("Device type does not exist!");
+            if (!(deviceTypeValues.includes(device_type_element.value.value))) {
+                error_messages.value.push("Device type does not exist!");
                 return false;
             }
         } 
         else {
-            errorMessages.value.push("Device type is undefined. Internal Error!");
+            error_messages.value.push("Device type is undefined. Internal Error!");
             return false;
         }
         return true;
     }
 
     function CheckDeviceCode() {
-        if (deviceCodeElements.value.length > 0) {
+        if (device_code_elements.value.length > 0) {
             let isCodeCorrect = true;
 
-            for (let i = 0; i < deviceCodeElements.value.length; i++) {
-                if (deviceCodeElements.value[i] != undefined) {
-                    const digit = deviceCodeElements.value[i].value;
+            for (let i = 0; i < device_code_elements.value.length; i++) {
+                if (device_code_elements.value[i] != undefined) {
+                    const digit = device_code_elements.value[i].value;
                     
                     if (digit.length != 1 || isNaN(parseInt(digit))) {                        
                         isCodeCorrect = false;
-                        errorMessages.value.push("Device code has missing values!");
+                        error_messages.value.push("Device code has missing values!");
                         break;
                     }
                 }
                 else {
                     isCodeCorrect = false;
-                    errorMessages.value.push("Device code input is undefined. Internal Error!");
+                    error_messages.value.push("Device code input is undefined. Internal Error!");
                     break;
                 }
             }
 
             if (isCodeCorrect) {
-                deviceCodeError.value = false;
+                device_code_error.value = false;
                 return true;
             }
             else {
-                deviceCodeError.value = true;
+                device_code_error.value = true;
                 return false;
             }
         }
         else {
-            errorMessages.value.push("Device code is undefined. Internal Error!");
+            error_messages.value.push("Device code is undefined. Internal Error!");
             return false;
         }
     }
@@ -322,7 +319,7 @@ import { DeviceType } from '../common/Enums';
 </script>
 
 <style scoped>
-    .mainCardEditContainer {
+    .s_MainCardEditContainer {
         color: var(--color-main-light);
         
         height: 100%;
@@ -335,7 +332,7 @@ import { DeviceType } from '../common/Enums';
         justify-content: space-between;
     }
 
-    .editOptions {
+    .s_EditOptions {
         height: 80%;
         
         padding-left: 8%;
@@ -347,11 +344,11 @@ import { DeviceType } from '../common/Enums';
         overflow-y: auto;
     }
 
-    .cardNameInput {
+    .s_CardNameInput {
         margin-bottom: 15px;
     }
 
-    .cardNameInput > input {
+    .s_CardNameInput > input {
         background-color: transparent;
         color: var(--color-main-light);
 
@@ -362,26 +359,26 @@ import { DeviceType } from '../common/Enums';
         border-style: none;
     }
 
-    .cardNameInput > input:focus {
+    .s_CardNameInput > input:focus {
         outline: none;
     }
 
-    .cardNameInputLine {
+    .s_CardNameInputLine {
         background-color: var(--color-main-light);
 
         height: 1px;
         width: 100%;
     }
 
-    .deviceTypeSelector {
+    .s_DeviceTypeSelector {
         margin-bottom: 15px;
     }
 
-    .deviceTypeSelector > p {
+    .s_DeviceTypeSelector > p {
         margin-bottom: 5px;
     }
 
-    .deviceTypeSelectorInput {
+    .s_DeviceTypeSelectorInput {
         background-color: transparent;
         color: var(--color-main-light);
 
@@ -395,7 +392,7 @@ import { DeviceType } from '../common/Enums';
         padding-left: 5px;
     }
 
-    .deviceCodeInput {
+    .s_DeviceCodeInput {
         height: 25px;
         width: 100%;
         
@@ -406,7 +403,7 @@ import { DeviceType } from '../common/Enums';
         justify-content: space-between;
     }
 
-    .deviceCodeInputField {
+    .s_DeviceCodeInputField {
         height: 100%;
         width: 18px;
 
@@ -421,7 +418,7 @@ import { DeviceType } from '../common/Enums';
         align-items: center;
     }
 
-    .deviceCodeFieldInput {
+    .s_DeviceCodeFieldInput {
         background-color: transparent;
         color: var(--color-main-light);
 
@@ -431,11 +428,11 @@ import { DeviceType } from '../common/Enums';
         text-align: center;
     }
 
-    .deviceCodeFieldInput:focus {
+    .s_DeviceCodeFieldInput:focus {
         outline: none;
     }
 
-    .actions {
+    .s_Actions {
         height: 15%;
 
         display: flex;
@@ -443,7 +440,7 @@ import { DeviceType } from '../common/Enums';
         justify-content: space-between;
     }
 
-    .actionBase {
+    .s_ActionBase {
         height: 100%;
         aspect-ratio: 1/1;
         
@@ -459,45 +456,45 @@ import { DeviceType } from '../common/Enums';
         align-items: center;
     }
 
-    .actionClose {
+    .s_ActionClose {
         border-radius: 0 20px 0 0;
         border-left: none;
     }
 
-    .actionApply {
+    .s_ActionApply {
         border-radius: 20px 0 0 0;
         border-right: none;
     }
 
-    .actionIconCancel {
+    .s_ActionIconCancel {
         fill: var(--color-main-light);
 
         height: 40%;
         width: 40%;
     }
 
-    .actionIconAccept {
+    .s_ActionIconAccept {
         fill: var(--color-main-light);
 
         height: 48%;
         width: 48%;
     }
 
-    .errorMarkerBg {
+    .s_ErrorMarkerBg {
         background-color: var(--color-error);
     }
 
-    .errorOutline {
+    .s_ErrorOutline {
         border-color: var(--color-error);
     }
 
-    .errorMessages {
+    .s_ErrorMessages {
         max-height: 100px;
 
         padding-top: 15px;
         margin-left: 18px;
     }
-    .errorMessage {
+    .s_ErrorMessage {
         color: var(--color-error);
         
         font-size: 14px;

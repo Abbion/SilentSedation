@@ -1,14 +1,14 @@
-//Rework Done
+//Rework 2.0
 <template>
     <div>
-        <div class="useHeader">
-            <p class="preventSelect">
-                {{ p_cardData.name }}
+        <div class="s_UseHeader">
+            <p class="s_PreventSelect">
+                {{ p_card_data.name }}
             </p>
-            <div class="useOptions cursorPointer preventSelect" @click="$emit('cardOptionsClicked')">...</div>
+            <div class="s_UseOptions s_CursorPointer s_PreventSelect" @click="$emit('CardOptionsClicked')">...</div>
         </div>
-        <div class="useContent">
-             <SchockerControll v-if="p_cardData.deviceType == DeviceType.ShockCaller" :properties="p_cardData.deviceProperties"></SchockerControll>
+        <div class="s_UseContent">
+             <SchockerControll v-if="p_card_data.device_type == DeviceType.ShockCaller" :p_properties="p_card_data.device_properties"></SchockerControll>
         </div>
     </div>
 </template>
@@ -20,13 +20,13 @@
     import { defineProps } from 'vue'
 
     defineProps<{
-        p_cardData : CardData
+        p_card_data : CardData
     }>();
 
 </script>
 
 <style scoped>
-    .useHeader {
+    .s_UseHeader {
         color: var(--color-main-light);
 
         height: 12%;
@@ -39,13 +39,13 @@
         align-items: end;
     }
     
-    .useOptions {
+    .s_UseOptions {
         position: absolute;
         transform: translate(72px, -12px);
         font-size: 20px;
     }
 
-    .useContent {
+    .s_UseContent {
         height: 88%;
         width: 100%;
     }

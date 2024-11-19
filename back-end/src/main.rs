@@ -1,7 +1,8 @@
-use std::sync::Mutex;
+//Rework 2.0
+use std::sync::{Mutex, MutexGuard};
 
 use actix_cors::Cors;
-use actix_web::{get, http::header::ContentType, post, web::{self, Data}, App, HttpResponse, HttpServer, Responder};
+use actix_web::{get, http::header::ContentType, post, web::{ self }, App, HttpResponse, HttpServer, Responder};
 use communication::{ requests, responses };
 use database::UserId;
 use mongodb::Database;
@@ -20,35 +21,27 @@ struct AppState {
     db : Mutex<Database>
 }
 
-#[get("/test")]
-async fn hello() -> impl Responder {
-    HttpResponse::Ok().body("Hello Wiktor!")
-}
-
-#[post("/echo")]
-async fn echo(req_body: String) -> impl Responder {
-    println!("Hello ({})", req_body);
-    HttpResponse::Ok().body(req_body)
-}
-
-async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
-}
-
 #[get("/users/{user_id}/{friend}")] // <- define path parameters
 async fn path_extractor(path: web::Path<(u32, String)>) -> impl Responder {
     let (user_id, friend) = path.into_inner();
     HttpResponse::Ok().body(format!("Welcome {}, user_id {}!", friend, user_id))
 }
 
-#[post("/login")]
-async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data<AppState>) -> impl Responder {
-    let db = match data.db.lock() {
-        Ok(db) => db,
+fn lock_database<'a>(db: &'a Mutex<Database>, error_message: &str) -> Result<MutexGuard<'a, Database>, HttpResponse> {
+    match db.lock() {
+        Ok(db) => Ok(db),
         Err(e) => {
             eprint!("{}", e);
-            return HttpResponse::InternalServerError().body("Internal login error: 1");
+            Err(HttpResponse::InternalServerError().body(format!("Internal error: database lock - {}", error_message)))
         }
+    }
+}
+
+#[post("/login")]
+async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match lock_database(&data.db, "login error: 1") {
+        Ok(db) => db,
+        Err(response) => return response
     };
 
     let username = body.username.to_string();
@@ -101,12 +94,9 @@ async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data
 
 #[post("/get_user_page_info")]
 async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
-    let db = match data.db.lock() {
+    let db = match lock_database(&data.db, "get user page info error: 1") {
         Ok(db) => db,
-        Err(e) => {
-            eprint!("{}", e);
-            return HttpResponse::InternalServerError().body("Internal user page info error: 1");
-        }
+        Err(response) => return response
     };
 
     let token = &body.token;
@@ -155,12 +145,9 @@ async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data
 
 #[post("/get_next_card_id")]
 async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
-    let db = match data.db.lock() {
+    let db = match lock_database(&data.db, "get next id error: 1") {
         Ok(db) => db,
-        Err(e) => {
-            eprint!("{}", e);
-            return HttpResponse::InternalServerError().body("Internal get next id error: 1");
-        }
+        Err(response) => return response
     };
 
     let token = &body.token;
@@ -206,12 +193,9 @@ async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: 
 
 #[post("/get_card")]
 async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<AppState>) -> impl Responder {
-    let db: std::sync::MutexGuard<'_, Database> = match data.db.lock() {
+    let db = match lock_database(&data.db, "get card error: 1") {
         Ok(db) => db,
-        Err(e) => {
-            eprint!("{}", e);
-            return HttpResponse::InternalServerError().body("Internal get card error: 1");
-        }
+        Err(response) => return response
     };
 
     let token = &body.token;
@@ -259,14 +243,61 @@ async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<App
     HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
 }
 
+#[post("/create_card")]
+async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match lock_database(&data.db, "create card error: 1") {
+        Ok(db) => db,
+        Err(response) => return response
+    };
+
+    let token = &body.token;
+    let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
+
+    let user_token = match user_token_result {
+        Ok(user_token) => user_token.claims,
+        Err(e) => {
+            println!("{}", e);
+            return HttpResponse::Unauthorized().body("User token dedode failed");
+        }
+    };
+
+    let user_id = match UserId::from_str(&user_token.sub) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal create card error: 2");
+        }
+    };
+
+    let user_data_collection = database::get_collections(&db).await;
+    let create_card_result = user_data_collection.create_card(user_id).await;
+
+    let create_card_response = match create_card_result {
+        Some(response) => response,
+        None => {
+           return HttpResponse::InternalServerError().body("Internal create card error: 3");
+        }     
+    };
+
+    let serialized_response = serde_json::to_string(&create_card_response);
+
+    println!("card data: {:?}", serialized_response);
+
+    let serialized_response = match serialized_response {
+        Ok(response) => response,
+        Err(e) => {
+            println!("{:?}", e);
+            return HttpResponse::InternalServerError().body("Internal create card error: 4");
+        }
+    };
+
+    HttpResponse::Ok().content_type(ContentType::json()).body(serialized_response)
+}
+
 #[post("/update_card")]
 async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Data<AppState>) -> impl Responder {
-    let db = match data.db.lock() {
+    let db = match lock_database(&data.db, "update card error: 1") {
         Ok(db) => db,
-        Err(e) => {
-            eprint!("{}", e);
-            return HttpResponse::InternalServerError().body("Internal get card error: 1");
-        }
+        Err(response) => return response
     };
 
     let token = &body.token;
@@ -356,8 +387,8 @@ async fn main() -> std::io::Result<()> {
         .service(get_user_page_info)
         .service(get_next_card_id)
         .service(get_card)
+        .service(create_card)
         .service(update_card)
-        .route("/hey", web::get().to(manual_hello))
     })
     .workers(4)
     .bind(("127.0.0.1", 9000))?

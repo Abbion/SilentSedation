@@ -1,19 +1,19 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="loginContainer">
-        <div class="loginPageTitle preventSelect">
-        Silent sedation
+    <div class="s_LoginContainer">
+        <div class="s_LoginPageTitle s_PreventSelect">
+            Silent sedation
         </div>
 
         <form>
-            <LoginInput inputTitle="Master name" v-model="username"/>
-            <LoginInput inputTitle="Password" :hideInput="true" v-model="password"/>
+            <LoginInput p_input_title="Master name" v-model="username"/>
+            <LoginInput p_input_title="Password" :p_hide_input="true" v-model="password"/>
 
-            <LoginActions v-model="remember" @logInButtonClicked="login"/>
+            <LoginActions v-model="remember" @LogInButtonClicked="Login"/>
         </form>
 
-        <div class="loginErrorMessages" v-show="errorMessage">
-            {{errorMessage}}
+        <div class="s_LoginErrorMessages" v-show="error_message">
+            {{error_message}}
         </div>
     </div>
 </template>
@@ -29,7 +29,7 @@
     let username : string = "";
     let password : string = "";
     let remember : boolean = false;
-    let errorMessage = ref<string>("");
+    let error_message = ref<string>("");
 
     const router = useRouter();
 
@@ -40,11 +40,11 @@
         }
     })
 
-    function login() {
-        errorMessage.value = "";
+    function Login() {
+        error_message.value = "";
 
         if (username.length == 0 && password.length == 0) {
-            errorMessage.value = "username and password fields are empty";
+            error_message.value = "username and password fields are empty";
             return;
         }
 
@@ -59,14 +59,14 @@
         })
         .catch(function (error) {
             console.log("Cath:",  error);
-            errorMessage.value = error.response.data["message"];
-            console.log(errorMessage);
+            error_message.value = error.response.data["message"];
+            console.log(error_message);
         });
     }
 </script>
 
 <style>
-    .loginContainer {
+    .s_LoginContainer {
         width: 600px;
         height: 420px;
 
@@ -80,7 +80,7 @@
         align-items: center;
     }
 
-    .loginPageTitle {
+    .s_LoginPageTitle {
         color: #EAEAEA;
 
         width: 100%;
@@ -94,12 +94,12 @@
     }
 
     @media screen and (max-width: 600px) {
-        .loginContainer {
+        .s_LoginContainer {
             width: auto;
         }
     }
 
-    .loginErrorMessages {
+    .s_LoginErrorMessages {
         border-color: var(--color-error);
         color: var(--color-error);
 

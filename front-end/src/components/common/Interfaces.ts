@@ -3,8 +3,8 @@ import { DeviceType } from './Enums'
 export interface CardData {
     id: number;
     name: string;
-    deviceType: DeviceType;
-    deviceProperties: Object;
+    device_type: DeviceType;
+    device_properties: Object;
     code: number[];
 }
 

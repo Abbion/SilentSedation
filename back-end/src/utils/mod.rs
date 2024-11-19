@@ -1,1 +1,1 @@
-pub mod deviceTypes;
+pub mod device_types;

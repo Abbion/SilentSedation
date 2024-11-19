@@ -50,6 +50,7 @@ impl UserToken {
                 self.exp = duration.as_secs() as usize + seconds_in_days;
             },
             Err(e) => {
+                eprint!("{}", e);
                 self.exp = 0;
             }
         }

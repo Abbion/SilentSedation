@@ -1,33 +1,33 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="controllIcon">
-        <div class="iconCircleFrame">
-            <ThunderBoltIcon class="schockerThunderBoltIcon"></ThunderBoltIcon>
+    <div class="s_ControllIcon">
+        <div class="s_IconCircleFrame">
+            <ThunderBoltIcon class="s_SchockerThunderBoltIcon"></ThunderBoltIcon>
         </div>
     </div>
-    <div class="powerControll">
-        <p class="controllTitle preventSelect">
+    <div class="s_PowerControll">
+        <p class="s_ControllTitle s_PreventSelect">
             Power
         </p>
-        <div class="powerControllSelector">
-            <div class="powerControllSelectorChangePowerButton" :class="{ schockerControllButtonClicked : decreasePowerClicked }" @mousedown="DecreasePowerDown" @mouseup="DecreasePowerUp" @mouseleave="ResetClickDown">
-                <MinusIcon class="powerControllSelectorIconStyle"/>
+        <div class="s_PowerControllSelector">
+            <div class="s_PowerControllSelectorChangePowerButton" :class="{ s_SchockerControllButtonClicked : decrease_power_clicked }" @mousedown="DecreasePowerDown" @mouseup="DecreasePowerUp" @mouseleave="ResetClickDown">
+                <MinusIcon class="s_PowerControllSelectorIconStyle"/>
             </div>
-            <div class="powerControllSelectorPowerValue preventSelect">
-                {{ powerLevel }}
+            <div class="s_PowerControllSelectorPowerValue s_PreventSelect">
+                {{ power_level }}
             </div>
-            <div class="powerControllSelectorChangePowerButton" :class="{ schockerControllButtonClicked : increasePowerClicked }" @mousedown="IncreasePowerDown" @mouseup="IncreasePowerUp" @mouseleave="ResetClickDown">
-                <AddIcon class="powerControllSelectorIconStyle"/>
+            <div class="s_PowerControllSelectorChangePowerButton" :class="{ s_SchockerControllButtonClicked : increase_power_clicked }" @mousedown="IncreasePowerDown" @mouseup="IncreasePowerUp" @mouseleave="ResetClickDown">
+                <AddIcon class="s_PowerControllSelectorIconStyle"/>
             </div>
         </div>
     </div>
-    <div class="actionControll">
-        <p class="controllTitle preventSelect">
+    <div class="s_ActionControll">
+        <p class="s_ControllTitle s_PreventSelect">
             Action
         </p>
-        <div class="actionControllButtons">
-            <div class="actionControllZapButton" :class="{ schockerControllButtonClicked : zapButtonClicked }" @mousedown="ZapButtonDown" @mouseup="ZapButtonUp" @mouseleave="ResetClickDown">
-                <ThunderBoltIcon class="schockerThunderBoltIcon"></ThunderBoltIcon>
+        <div class="s_ActionControllButtons">
+            <div class="s_ActionControllZapButton" :class="{ s_SchockerControllButtonClicked : zap_button_clicked }" @mousedown="ZapButtonDown" @mouseup="ZapButtonUp" @mouseleave="ResetClickDown">
+                <ThunderBoltIcon class="s_SchockerThunderBoltIcon"></ThunderBoltIcon>
             </div>
         </div>
     </div>
@@ -38,93 +38,95 @@
     import AddIcon from '../../icons/AddIcon.vue';
     import MinusIcon from '../../icons/MinusIcon.vue';
     import { ref, defineProps, onMounted } from 'vue'
-import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
+    import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
 
-    let powerLevel = ref(5);
-    let decreasePowerClicked = ref(false);
-    let increasePowerClicked = ref(false);
-    let mouseDownOnDecreaseButton = false;
-    let mouseDownOnIncreaseButton = false;
+    let power_level = ref(5);
+    let decrease_power_clicked = ref(false);
+    let increase_power_clicked = ref(false);
+    let mouse_down_on_decrease_button = false;
+    let mouse_down_on_increase_button = false;
 
-    let zapButtonClicked = ref(false);
-    let mouseDonwOnZapButton = false;
+    let zap_button_clicked = ref(false);
+    let mouse_donw_on_zap_button = false;
 
     const props = defineProps<{
-        properties: object;
+        p_properties: Record<string, any>;
     }>();
 
     onMounted(()=> {
-        let properties = props.properties[DeviceTypeToString(DeviceType.ShockCaller)];
-        powerLevel.value = properties.power;
+        console.log("props: " + props.p_properties + " - " + DeviceTypeToString(DeviceType.ShockCaller));
+        
+        let properties = props.p_properties[DeviceTypeToString(DeviceType.ShockCaller)];
+        power_level.value = properties.power;
     });
 
     function DecreasePowerDown() {
-        decreasePowerClicked.value = true;
-        mouseDownOnDecreaseButton = true;
+        decrease_power_clicked.value = true;
+        mouse_down_on_decrease_button = true;
     }
 
     function DecreasePowerUp() {
-        if (!mouseDownOnDecreaseButton)
+        if (!mouse_down_on_decrease_button)
             return;
 
-        powerLevel.value -= 1;
+        power_level.value -= 1;
 
-        if (powerLevel.value < 1)
-            powerLevel.value = 1;
+        if (power_level.value < 1)
+            power_level.value = 1;
 
-        decreasePowerClicked.value = false;
-        mouseDownOnDecreaseButton = false;
+        decrease_power_clicked.value = false;
+        mouse_down_on_decrease_button = false;
     }
 
     function IncreasePowerDown() {
-        increasePowerClicked.value = true;
-        mouseDownOnIncreaseButton = true;
+        increase_power_clicked.value = true;
+        mouse_down_on_increase_button = true;
     }
 
     function IncreasePowerUp() {
-        if (!mouseDownOnIncreaseButton)
+        if (!mouse_down_on_increase_button)
             return;
 
-        powerLevel.value += 1;
+        power_level.value += 1;
 
-        if (powerLevel.value > 10)
-            powerLevel.value = 10;
+        if (power_level.value > 10)
+            power_level.value = 10;
 
-        increasePowerClicked.value = false;
-        mouseDownOnIncreaseButton = false;
+        increase_power_clicked.value = false;
+        mouse_down_on_increase_button = false;
     }
 
     function ResetClickDown() {
-        increasePowerClicked.value = false;
-        decreasePowerClicked.value = false;
-        mouseDownOnDecreaseButton = false;
-        mouseDownOnIncreaseButton = false;
+        increase_power_clicked.value = false;
+        decrease_power_clicked.value = false;
+        mouse_down_on_decrease_button = false;
+        mouse_down_on_increase_button = false;
 
-        zapButtonClicked.value = false;
-        mouseDonwOnZapButton = false;
+        zap_button_clicked.value = false;
+        mouse_donw_on_zap_button = false;
     }
 
     function ZapButtonDown() {
-        zapButtonClicked.value = true;
-        mouseDonwOnZapButton = true;
+        zap_button_clicked.value = true;
+        mouse_donw_on_zap_button = true;
     }
 
     function ZapButtonUp() {
-        if (!mouseDonwOnZapButton)
+        if (!mouse_donw_on_zap_button)
         return;
 
-        zapButtonClicked.value = false;
-        mouseDonwOnZapButton = false;
+        zap_button_clicked.value = false;
+        mouse_donw_on_zap_button = false;
     }
 </script>
 
 <style scoped>
-    .controllIcon {
+    .s_ControllIcon {
         height: 65px;
         width: 100%;
     }
 
-    .iconCircleFrame {
+    .s_IconCircleFrame {
         height: 70%;
         aspect-ratio: 1/1;
 
@@ -142,16 +144,16 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         justify-content: center;
     }
 
-    .schockerThunderBoltIcon {
+    .s_SchockerThunderBoltIcon {
         fill: var(--color-main-light);
     }
 
-    .powerControll {
+    .s_PowerControll {
         height: 95px;
         width: 100%;
     }
 
-    .controllTitle {
+    .s_ControllTitle {
         color: var(--color-main-light);
         height: 27px;
 
@@ -163,7 +165,7 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         font-size: 18px;
     }
 
-    .powerControllSelector {
+    .s_PowerControllSelector {
         height: 60px;
 
         display: flex;
@@ -172,7 +174,7 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         justify-content: center;
     }
 
-    .powerControllSelectorChangePowerButton {
+    .s_PowerControllSelectorChangePowerButton {
         height: 40px;
         width: 40px;
 
@@ -187,23 +189,23 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         justify-content: center;
     }
     
-    .schockerControllButtonClicked {
+    .s_SchockerControllButtonClicked {
         opacity: 0.65;
     }
 
-    .powerControllSelectorChangePowerButton:hover {
+    .s_PowerControllSelectorChangePowerButton:hover {
         background-color: var(--color-main-dark--highlight);
         cursor: pointer;
     }
 
-    .powerControllSelectorIconStyle {
+    .s_PowerControllSelectorIconStyle {
         fill: var(--color-main-light);
 
         height: 40%;
         width: 40%;
     }
 
-    .powerControllSelectorPowerValue {
+    .s_PowerControllSelectorPowerValue {
         color: var(--color-main-light);
 
         height: 50px;
@@ -222,12 +224,12 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         font-size: 36px;
     }
 
-    .actionControll {
+    .s_ActionControll {
         height: 100px;
         width: 100%;
     }
 
-    .actionControllButtons {
+    .s_ActionControllButtons {
         height: calc(100% - 25px);
 
         display: flex;
@@ -236,7 +238,7 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         justify-content: center;
     }
 
-    .actionControllZapButton {
+    .s_ActionControllZapButton {
         background-color: transparent;
 
         height: 50px;
@@ -253,12 +255,12 @@ import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
         justify-content: center;
     }
 
-    .actionControllZapButton:hover {
+    .s_ActionControllZapButton:hover {
         background-color: var(--color-main-dark--highlight);
         cursor: pointer;
     }
     
-    .actionControllZapButton > .schockerThunderBoltIcon {
+    .s_ActionControllZapButton > .s_SchockerThunderBoltIcon {
         height: 60%;
         width: 60%;
     }

@@ -5,17 +5,17 @@ export enum DeviceType {
 
 export function StringToDeviceType(device_str : String) : DeviceType {
     switch(String(device_str.toLowerCase())) {
-        case "shock_caller":
+        case "shockcaller":
             return DeviceType.ShockCaller;
     }
 
     return DeviceType.None;
 }
 
-export function DeviceTypeToString(device_type : DeviceType) : String {
+export function DeviceTypeToString(device_type : DeviceType) : string {
     switch(device_type) {
         case DeviceType.ShockCaller:
-            return String("shock_caller".toUpperCase())
+            return "ShockCaller"
     }
 
     return "None";

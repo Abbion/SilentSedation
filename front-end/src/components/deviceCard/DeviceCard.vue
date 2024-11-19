@@ -1,25 +1,26 @@
+//Rework 2.0
 <template>
-    <div class="cardContainer centerContentVertical"
-         :class="[ state == CardState.Add ? ['cardContainerDashed', 'cursorPointer', 'highlightElement'] : 'cardContainerSolid' ]"
-          ref="cardContainerHTML"
+    <div class="s_CardContainer s_CenterContentVertical"
+         :class="[ state == CardState.Add ? ['s_CardContainerDashed', 's_CursorPointer', 's_HighlightElement'] : 's_CardContainerSolid' ]"
+          ref="card_container_html"
           @click="CardContainerClick">
     
     <CardAddState v-if="state == CardState.Add"></CardAddState>
 
     <CardEditState v-if="state == CardState.Edit" 
-                  :cardDataProp="cardData"
-                  @cardEditAddButtonClicked="HandleEditStateData" 
-                  @cardEditCancelButtonClicked="HandleEditStateCancel"></CardEditState>
+                  :p_card_data="card_data"
+                  @CardEditAddButtonClicked="HandleEditStateData" 
+                  @CardEditCancelButtonClicked="HandleEditStateCancel"></CardEditState>
 
     <CardUseState v-if="state == CardState.Use"
-                  :p_cardData="cardData"
-                  @cardOptionsClicked="GoToOptionState"></CardUseState>
+                  :p_card_data="card_data"
+                  @CardOptionsClicked="GoToOptionState"></CardUseState>
 
     <CardOptionState v-if="state == CardState.Options"
-                    :cardName="cardData.name"
-                    @cardOptionsEditButtonClicked="GoToEditState" 
-                    @cardOptionsDeleteButtonClicked="HandleDeleteCard"
-                    @cardOptionsReturnButtonClicked="GoToUseState"></CardOptionState>
+                    :p_card_name="card_data.name"
+                    @CardOptionsEditButtonClicked="GoToEditState" 
+                    @CardOptionsDeleteButtonClicked="HandleDeleteCard"
+                    @CardOptionsReturnButtonClicked="GoToUseState"></CardOptionState>
 
     </div>
 </template>
@@ -30,7 +31,7 @@
     import CardOptionState from './CardOptionState.vue'
     import CardUseState from './CardUseState.vue'
 
-    import { ref, defineEmits, onMounted, useTransitionState } from 'vue'
+    import { ref, defineEmits, onMounted } from 'vue'
 
     import type { CardData } from '../common/Interfaces'
     import { DeviceType, StringToDeviceType } from '../common/Enums';
@@ -44,65 +45,64 @@
         Use
     }
 
-    const emit = defineEmits(['cardCreated', 'cardRemoved']);
+    const emit = defineEmits(['CardCreated', 'CardRemoved']);
     const props = defineProps<{
-        cardId: number
+        p_card_id: number
     }>();
 
     let state = ref(CardState.Add);
-    let cardContainerHTML = ref<HTMLDivElement>();
-    let cardData : CardData = { id: -1, name: "", deviceType: DeviceType.None, deviceProperties: {}, code: [] };
-    let cancelFromEdit = false;
+    let card_container_html = ref<HTMLDivElement>();
+    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.None, device_properties: {}, code: [] };
+    let cancel_from_edit = false;
     
     onMounted(()=>{
-        cardData.id = props.cardId;
+        card_data.id = props.p_card_id;
 
         let token = localStorage.getItem('token');
         if (token !== null) {
             axios.post('http://localhost:9000/get_card', {
                     token: token,
-                    card_id: cardData.id
+                    card_id: card_data.id
             })
             .then(function (response) {
                 console.log(response.data);
 
+                //Check if the id is correct. Compare to p_card_id
                 let card_id = response.data["card_id"];
                 let device_name = response.data["device_name"];
-
+                
+                if (card_id != card_data.id)
+                    throw new Error("Device id mismatch! Device id: " + card_id + " expected: " + card_data.id)
 
                 if (device_name.length < 1)
-                {
+                    throw new Error("Incomplete device name!")
+                   
+                let device_type_obj = response.data["device_type"];
+                let device_code = response.data["code"];
+                let device_type_array = Object.keys(device_type_obj);
 
-                }
-                else
-                {   
-                    let device_type_obj = response.data["device_type"];
-                    let device_code = response.data["code"];
-                    let device_type_array = Object.keys(device_type_obj);
-
-                    if (device_type_array.length != 1)
-                        throw new Error("Device type has returned: " + device_type_array.length + " entries!");
+                if (device_type_array.length != 1)
+                    throw new Error("Device type has returned: " + device_type_array.length + " entries!");
                 
-                    let device_type = device_type_array[0];
+                let device_type = device_type_array[0];
 
-                    cardData.name = device_name;
-                    cardData.deviceType = StringToDeviceType(device_type);
-                    cardData.deviceProperties = device_type_obj;
-                    cardData.code = device_code;
+                card_data.name = device_name;
+                card_data.device_type = StringToDeviceType(device_type);
+                card_data.device_properties = device_type_obj;
+                card_data.code = device_code;
 
-                    GoToUseState();
-                }
+                GoToUseState();
                 
             }).catch( function(error) {
-                console.log("Device card ", cardData.id, " error: ", error);
+                console.log("Device card ", card_data.id, " error: ", error);
                 
             })
         }
     });
 
     function CardContainerClick() {
-        if (cancelFromEdit) {
-            cancelFromEdit = false;
+        if (cancel_from_edit) {
+            cancel_from_edit = false;
             return;
         }
 
@@ -121,7 +121,6 @@
 
     function GoToOptionState() {
         state.value = CardState.Options;
-        
     }
 
     function GoToUseState() {
@@ -133,13 +132,13 @@
     }
 
     function HandleEditStateData(data : CardData) {
-        var firstEdit = cardData.name === "" ? true : false;
+        var firstEdit = card_data.name === "" ? true : false;
 
-        cardData = data;        
+        card_data = data;        
         GoToUseState();
 
         if (firstEdit) {
-            console.log("Create card post: ", cardData);
+            console.log("Create card post: ", card_data);
             
             let token = localStorage.getItem('token');
 
@@ -150,12 +149,9 @@
 
             axios.post('http://localhost:9000/update_card',{
                 token: token,
-                card_data : cardData
+                card_data : card_data
             }).then(function() {
-                console.log("Here");
-                
-                //console.log("Add card response: ", respose);
-                //emit('cardCreated');
+                emit('CardCreated')
             }).catch(function(error){
                 console.log("Device card - Handle edit state data error: ", error);
                 
@@ -165,8 +161,8 @@
     }
     
     function HandleEditStateCancel() {        
-        if (cardData.name.length < 1) {
-            cancelFromEdit = true;
+        if (card_data.name.length < 1) {
+            cancel_from_edit = true;
             GoToAddState();      
         }
         else {
@@ -175,17 +171,17 @@
     }
 
     function HandleDeleteCard() {
-        cardData.name = "";
-        cardData.deviceType = DeviceType.None;
-        cardData.code = [];
+        card_data.name = "";
+        card_data.device_type = DeviceType.None;
+        card_data.code = [];
 
-        cancelFromEdit = true;
-        emit('cardRemoved', cardData.id);
+        cancel_from_edit = true;
+        emit('CardRemoved', card_data.id);
     }
 </script>
 
 <style>
-    .cardContainer {
+    .s_CardContainer {
         width: 200px;
         height: 320px;
         
@@ -198,15 +194,15 @@
         margin-bottom: 36px;
     }
 
-    .highlightElement:hover {
+    .s_HighlightElement:hover {
         background-color: var(--color-main-dark--highlight);
     }
 
-    .cardContainerDashed {
+    .s_CardContainerDashed {
         border-style: dashed;
     }
 
-    .cardContainerSolid {
+    .s_CardContainerSolid {
         border-style: solid;
     }
 </style>

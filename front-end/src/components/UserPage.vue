@@ -1,20 +1,20 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="userPageContainer">
-        <div class="userPageTopPanel">
+    <div class="s_UserPageContainer">
+        <div class="s_UserPageTopPanel">
             <UserDash :username="username" />
         </div>
 
-        <div class="userPageInfo">
-            <p class="preventSelect" @click="clearStorage">
+        <div class="s_UserPageInfo">
+            <p class="s_PreventSelect" @click="ClearStorage">
                 Devices
             </p>
 
-            <div class="userPageInfoLine"></div>
+            <div class="s_UserPageInfoLine"></div>
         </div>
 
-        <div class="userPageContent">
-            <DeviceCard v-for="(id) in cardsId" :key="id" :cardId="id" @cardCreated="AddEmptyCard" @cardRemoved="RemoveCard"/>
+        <div class="s_UserPageContent">
+            <DeviceCard v-for="(id) in cards_id" :key="id" :p_card_id="id" @CardCreated="AddEmptyCard" @CardRemoved="RemoveCard"/>
         </div>
     </div>
 </template>
@@ -25,9 +25,8 @@
     import { useRouter } from 'vue-router';
     import { onMounted, ref } from 'vue';
     import axios from 'axios';
-import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
 
-    let cardsId = ref<number[]>([]);
+    let cards_id = ref<number[]>([]);
     let username = "empty"
 
     const router = useRouter();
@@ -48,20 +47,7 @@ import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
                 console.log("username: ", username, " cards: ", cards);
 
                 for (let ids in cards) {                    
-                    cardsId.value.push(parseInt(ids));
-                }
-            })
-            .then(function() {
-                if (cardsId.value.length == 0) {
-                    axios.post('http://localhost:9000/get_next_card_id', {
-                        token : token
-                    })
-                    .then(function (response) {
-                        console.log("Next card id: ", response.data);
-                    })
-		            .catch(function (error) {
-                        console.log("Cath:",  error);
-                    });
+                    cards_id.value.push(parseInt(ids));
                 }
             })
             .catch(function (error) {
@@ -70,49 +56,53 @@ import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
                 //Create a enunm for codes
                 if (status == 401)
                 {
-                    clearStorage();
-                    navigateToLogIn();
+                    ClearStorage();
+                    NavigateToLogIn();
                 }
             });
         }
         else {
-            clearStorage();
-            navigateToLogIn();
+            ClearStorage();
+            NavigateToLogIn();
         }
     });
 
-    function clearStorage() {
+    function ClearStorage() {
         localStorage.clear();
     }
 
-    function navigateToLogIn() {
+    function NavigateToLogIn() {
         router.replace('/');
     }
 
     function AddEmptyCard() {
+        console.log("HERE");
+        
         let token = localStorage.getItem('token');
 
-        axios.post('http://localhost:9000/get_next_card_id',{
+        axios.post('http://localhost:9000/create_card',{
             token: token
         }).then(function(response){
-            let next_id = response.data["next_id"];
-            cardsId.value.push(next_id);
+            console.log("create resp: " + response.data);
+            
+            //let next_id = response.data["card_id"];
+            //cards_id.value.push(next_id);
         }).catch(function(error){
             console.log("User page - Add empty card error: ", error);
         })
     }
 
     function RemoveCard(id: number) {
-        const index = cardsId.value.indexOf(id);
+        const index = cards_id.value.indexOf(id);
         
         if (index !== -1) {
-            cardsId.value.splice(index, 1);
+            cards_id.value.splice(index, 1);
         }
     }
 </script>
 
 <style scoped>
-    .userPageContainer {
+    .s_UserPageContainer {
         width: 1280px;
 
         display: flex;
@@ -120,18 +110,18 @@ import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
         align-items: center;
     }
 
-    .userPageTopPanel {
+    .s_UserPageTopPanel {
         position: fixed;
         height:80px;
         width: 100%;
     }
 
-    .userPageInfo {
+    .s_UserPageInfo {
         margin-top: 80px;
         width: 75%;
     }
 
-    .userPageInfo > p {
+    .s_UserPageInfo > p {
         margin: 0;
         padding:  0;
     
@@ -141,7 +131,7 @@ import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
         margin-bottom: 10px;
     }
 
-    .userPageInfoLine {
+    .s_UserPageInfoLine {
         background-color: #EAEAEA;
         height: 2px;
         width: 100%;
@@ -149,7 +139,7 @@ import { createEmitAndSemanticDiagnosticsBuilderProgram } from 'typescript';
         margin-bottom: 40px;
     }
 
-    .userPageContent {
+    .s_UserPageContent {
         display: flex;
         flex-direction: row;
         flex-wrap: wrap;

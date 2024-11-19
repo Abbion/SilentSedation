@@ -1,8 +1,8 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="entryContainer">
-        <p class="preventSelect">
-            {{ props.inputTitle }}
+    <div class="s_EntryContainer">
+        <p class="s_PreventSelect">
+            {{ props.p_input_title }}
         </p>
         <input :type="inputType" v-model="value">
     </div>
@@ -10,16 +10,16 @@
 
 <script setup lang="ts">
     interface Props {
-        inputTitle: string
-        hideInput?: boolean
+        p_input_title: string
+        p_hide_input?: boolean
     };
 
     const props = withDefaults(defineProps<Props>(), {
-        hideInput: false
+        p_hide_input: false
     });
 
     let value = defineModel<String>();
-    const inputType = props.hideInput ? 'password' : 'text';
+    const inputType = props.p_hide_input ? 'password' : 'text';
 </script>
 
 <style scoped>

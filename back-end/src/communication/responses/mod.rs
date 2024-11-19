@@ -1,5 +1,5 @@
 use serde::Serialize;
-use crate::utils::deviceTypes::DeviceType;
+use crate::utils::device_types::DeviceType;
 
 #[derive(Serialize)]
 pub struct LoginResposne {
@@ -46,4 +46,9 @@ pub struct GetCardDataResponse {
     pub device_name : String,
     pub device_type : DeviceType,
     pub code : [u8; 6],
+}
+
+#[derive(Serialize, Debug)]
+pub struct CreateCardResponse {
+    pub card_id : i64
 }

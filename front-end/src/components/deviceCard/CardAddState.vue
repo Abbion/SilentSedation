@@ -1,11 +1,11 @@
-//Rework Done
+//Rework 2.0
 <template>
-    <div class="centerContentVertical">
-        <p class="preventSelect">
+    <div class="s_CenterContentVertical">
+        <p class="s_PreventSelect">
             new device
         </p>
-        <div class="roundButton">
-            <AddIcon class="addIcon"/>
+        <div class="s_RoundButton">
+            <AddIcon class="s_AddIcon"/>
         </div>
     </div>
 </template>
@@ -20,7 +20,7 @@
         font-size: 25px;
     }
 
-    .roundButton {
+    .s_RoundButton {
         width: 60px;
         height: 60px;
 
@@ -37,7 +37,7 @@
         align-items: center;
     }
 
-    .addIcon{
+    .s_AddIcon{
         fill: var(--color-main-light);
         width: 30%;
         height: 30%;
