@@ -14,7 +14,7 @@ export const DeviceTypeUtils = {
             case 1:
                 return DeviceType.ShockCaller;
             default:
-                return DeviceType.None;
+                return DeviceType.Empty;
         }
     }
 }

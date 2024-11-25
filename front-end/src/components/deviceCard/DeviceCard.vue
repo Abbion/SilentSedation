@@ -52,42 +52,49 @@
 
     let state = ref(CardState.Add);
     let card_container_html = ref<HTMLDivElement>();
-    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.None, device_properties: {}, code: [] };
+    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.Empty, device_properties: {}, code: [] };
     let cancel_from_edit = false;
     
     onMounted(()=>{
         card_data.id = props.p_card_id;
+        GetCard();
+    });
 
+    function GetCard() {
         let token = localStorage.getItem('token');
+
         if (token !== null) {
             axios.post('http://localhost:9000/get_card', {
                     token: token,
                     card_id: card_data.id
             })
             .then(function (response) {
-                console.log(response.data);
-
                 //Check if the id is correct. Compare to p_card_id
                 let card_id = response.data["card_id"];
-                let device_name = response.data["device_name"];
                 
                 if (card_id != card_data.id)
                     throw new Error("Device id mismatch! Device id: " + card_id + " expected: " + card_data.id)
-
-                if (device_name.length < 1)
-                    throw new Error("Incomplete device name!")
-                   
+                
                 let device_type_obj = response.data["device_type"];
-                let device_code = response.data["code"];
                 let device_type_array = Object.keys(device_type_obj);
 
                 if (device_type_array.length != 1)
                     throw new Error("Device type has returned: " + device_type_array.length + " entries!");
+
+                let device_type = StringToDeviceType(device_type_array[0]);
+
+                if (device_type === DeviceType.Empty)
+                    return;
+
+                let device_name = response.data["device_name"];
                 
-                let device_type = device_type_array[0];
+                if (device_name.length < 1)
+                    throw new Error("Incomplete device name!");
+                   
+                let device_code = response.data["code"];
 
                 card_data.name = device_name;
-                card_data.device_type = StringToDeviceType(device_type);
+                card_data.device_type = device_type;
                 card_data.device_properties = device_type_obj;
                 card_data.code = device_code;
 
@@ -95,10 +102,9 @@
                 
             }).catch( function(error) {
                 console.log("Device card ", card_data.id, " error: ", error);
-                
             })
         }
-    });
+    }
 
     function CardContainerClick() {
         if (cancel_from_edit) {
@@ -134,11 +140,8 @@
     function HandleEditStateData(data : CardData) {
         var firstEdit = card_data.name === "" ? true : false;
 
-        card_data = data;        
-        GoToUseState();
-
         if (firstEdit) {
-            console.log("Create card post: ", card_data);
+            console.log("Create card post: ", data);
             
             let token = localStorage.getItem('token');
 
@@ -149,14 +152,13 @@
 
             axios.post('http://localhost:9000/update_card',{
                 token: token,
-                card_data : card_data
+                card_data : data
             }).then(function() {
+                GetCard();
                 emit('CardCreated')
             }).catch(function(error){
                 console.log("Device card - Handle edit state data error: ", error);
-                
             })
-
         }
     }
     
@@ -172,7 +174,7 @@
 
     function HandleDeleteCard() {
         card_data.name = "";
-        card_data.device_type = DeviceType.None;
+        card_data.device_type = DeviceType.Empty;
         card_data.code = [];
 
         cancel_from_edit = true;

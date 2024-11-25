@@ -1,5 +1,5 @@
 export enum DeviceType {
-    None = 0,
+    Empty = 0,
     ShockCaller = 1
 }
 
@@ -9,7 +9,7 @@ export function StringToDeviceType(device_str : String) : DeviceType {
             return DeviceType.ShockCaller;
     }
 
-    return DeviceType.None;
+    return DeviceType.Empty;
 }
 
 export function DeviceTypeToString(device_type : DeviceType) : string {
@@ -18,5 +18,5 @@ export function DeviceTypeToString(device_type : DeviceType) : string {
             return "ShockCaller"
     }
 
-    return "None";
+    return "Empty";
 }

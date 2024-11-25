@@ -57,6 +57,7 @@
         console.log("props: " + props.p_properties + " - " + DeviceTypeToString(DeviceType.ShockCaller));
         
         let properties = props.p_properties[DeviceTypeToString(DeviceType.ShockCaller)];
+        
         power_level.value = properties.power;
     });
 

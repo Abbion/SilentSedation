@@ -76,17 +76,15 @@
     }
 
     function AddEmptyCard() {
-        console.log("HERE");
-        
         let token = localStorage.getItem('token');
 
         axios.post('http://localhost:9000/create_card',{
             token: token
         }).then(function(response){
-            console.log("create resp: " + response.data);
+            console.log("create resp: " + JSON.stringify(response.data));
             
-            //let next_id = response.data["card_id"];
-            //cards_id.value.push(next_id);
+            let next_id = response.data["card_id"];
+            cards_id.value.push(next_id);
         }).catch(function(error){
             console.log("User page - Add empty card error: ", error);
         })

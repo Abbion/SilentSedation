@@ -177,11 +177,11 @@ impl UserDataCollection {
                 let device_type = DeviceType::new(device_type as i64);
 
                 let resp = match device_type {
-                    DeviceType::Empty => {
+                    DeviceType::Empty() => {
                         responses::GetCardDataResponse{
                             card_id: card_id,
                             device_name: String::new(),
-                            device_type: DeviceType::Empty,
+                            device_type: DeviceType::Empty(),
                             code: [0, 0, 0, 0, 0, 0]
                         }
                     },
