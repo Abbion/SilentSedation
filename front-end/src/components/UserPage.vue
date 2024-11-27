@@ -43,10 +43,8 @@
             .then(function (response) {
                 username = response.data["username"];
                 let cards = response.data["card_ids"];
-                
-                console.log("username: ", username, " cards: ", cards);
 
-                for (let ids in cards) {                    
+                for (let ids of cards) {    
                     cards_id.value.push(parseInt(ids));
                 }
             })
@@ -85,7 +83,7 @@
             
             let next_id = response.data["card_id"];
             cards_id.value.push(next_id);
-        }).catch(function(error){
+        }).catch(function(error) {
             console.log("User page - Add empty card error: ", error);
         })
     }

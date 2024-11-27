@@ -332,8 +332,70 @@ async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Da
                 DatabaseError::CodeParsingFailed => {
                     HttpResponse::InternalServerError().body("Internal update card error: 3")
                 },
+                DatabaseError::DatabaseCardUpdateFailed => {
+                    HttpResponse::InternalServerError().body("Internal update card error: 4")
+                }
+                _ => {
+                    HttpResponse::InternalServerError().body("Internal update card error: X")
+                }
             }
         }
+    }
+}
+
+#[post("/delete_card")]
+async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web::Data<AppState>) -> impl Responder {
+    let db = match lock_database(&data.db, "delete card error: 1") {
+        Ok(db) => db,
+        Err(response) => return response
+    };
+
+    let token = &body.token;
+    let user_token_result = data.jwt.decode::<auth::jwt::UserToken>(token.to_owned());
+
+    let user_token = match user_token_result {
+        Ok(user_token) => user_token.claims,
+        Err(e) => {
+            println!("{}", e);
+            return HttpResponse::Unauthorized().body("User token dedode failed");
+        }
+    };
+
+    let user_id = match UserId::from_str(&user_token.sub) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal delete card error: 2");
+        }
+    };
+
+    let card_id = body.card_id;
+
+    let user_data_collection = database::get_collections(&db).await;
+    let card_delete_result = user_data_collection.delete_card(user_id, card_id).await;
+
+    match card_delete_result {
+             Ok(_) => {
+            HttpResponse::Ok().content_type(ContentType::json()).body("Card deleted successfuly")
+        },
+        Err(e) => {
+            match e {
+                DatabaseError::CannotDeleteCardWithEmptyDeviceType => {
+                    HttpResponse::InternalServerError().body("Internal delete card error: 3")
+                },
+                DatabaseError::CheckingCardDeviceTypeFailed => {
+                    HttpResponse::InternalServerError().body("Internal delete card error: 4")
+                },
+                DatabaseError::UserIdFilterCreationFailed => {
+                    HttpResponse::InternalServerError().body("Internal delete card error: 5")
+                },
+                DatabaseError::DatabaseCardUpdateFailed => {
+                    HttpResponse::InternalServerError().body("Internal delete card error: 6")
+                },
+                _ => {
+                    HttpResponse::InternalServerError().body("Internal update card error: X")
+                }
+            }
+        }   
     }
 }
 
@@ -389,6 +451,7 @@ async fn main() -> std::io::Result<()> {
         .service(get_card)
         .service(create_card)
         .service(update_card)
+        .service(delete_card)
     })
     .workers(4)
     .bind(("127.0.0.1", 9000))?

@@ -1,3 +1,7 @@
 pub enum DatabaseError {
-    CodeParsingFailed
+    CodeParsingFailed,
+    DatabaseCardUpdateFailed,
+    UserIdFilterCreationFailed,
+    CheckingCardDeviceTypeFailed,
+    CannotDeleteCardWithEmptyDeviceType,
 }

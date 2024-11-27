@@ -4,11 +4,8 @@
         <p class="s_PreventSelect">
             {{ p_card_name }}
         </p>
-        <div class="s_RoundButton s_HighlightElement s_CursorPointer" @click="$emit('CardOptionsEditButtonClicked')">
-            <EditIcon class="editIcon"/>
-        </div>
-        <div class="roundButton highlightElement cursorPointer" @click="$emit('CardOptionsDeleteButtonClicked')">
-            <TrashIcon class="trashIcon"/>
+        <div class="s_RoundButton s_HighlightElement s_CursorPointer" @click="$emit('CardOptionsDeleteButtonClicked')">
+            <TrashIcon class="s_TrashIcon"/>
         </div>
         <div class="s_RoundButton s_HighlightElement s_CursorPointer" @click="$emit('CardOptionsReturnButtonClicked')">
             <GoBackIcon class="s_GoBackIcon" />
@@ -17,7 +14,6 @@
 </template>
 
 <script setup lang="ts">
-    import EditIcon from '../icons/EditIcon.vue'
     import GoBackIcon from '../icons/GoBackIcon.vue'
     import TrashIcon from '../icons/TrashIcon.vue'
 
@@ -37,7 +33,7 @@
         width: 60px;
         height: 60px;
 
-        margin-top: 10px;
+        margin-top: 20px;
 
         border-color: var(--color-main-light);
         border-radius: 100%;
@@ -48,13 +44,6 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-    }
-
-    .s_EditIcon {
-        stroke: var(--color-main-light);
-
-        height: 45%;
-        width: 45%;
     }
 
     .s_TrashIcon {

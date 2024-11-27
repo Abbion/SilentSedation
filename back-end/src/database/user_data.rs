@@ -1,5 +1,3 @@
-use std::os::linux::raw::stat;
-
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, Bson, Document };
 use crate::communication::requests::CardData;
@@ -272,6 +270,7 @@ impl UserDataCollection {
             return None;
         }
 
+        // Unify names for mongo db functions like push_status -> push_result
         let add_empty_card = doc! {"$push" : {"cards" : { "id": next_card_id, "device_type": 0 }}};
         let push_status = self.collection.update_one(filter, add_empty_card, None).await;
 
@@ -280,9 +279,12 @@ impl UserDataCollection {
             Err(_) => return None
         };
 
+        if match_count != 1 {
+            return None;
+        }
+
         Some(CreateCardResponse{ card_id: next_card_id })
     }
-
 
     pub async fn update_card(&self, user_id: UserId, card_data: &CardData) -> Result<(), DatabaseError> {
         let filter = doc! {
@@ -303,7 +305,7 @@ impl UserDataCollection {
                     update_doc.insert("cards.$.power", power as i32);
                 }
                 else {
-                    update_doc.insert("cards.$.power", 2 as i32);
+                    update_doc.insert("cards.$.power", constants::SHOCKER_DEFAULT_POWER);
                 }
             },
             _ => {}
@@ -321,20 +323,98 @@ impl UserDataCollection {
 
         update_doc.insert("cards.$.code", code_str);
 
-        println!("{:?}", update_doc);
-
         let update_doc_set = doc! {"$set" : update_doc};
         let update_result = self.collection.update_one(filter, update_doc_set,None).await;
-        println!("{:?}", update_result);
 
-        //Handle bad update result
+        if update_result.is_err() {
+            return Err(DatabaseError::DatabaseCardUpdateFailed);
+        }
+
+        Ok(())
+    }
+    
+    //db.user_data.updateOne({ username : "Wiktor" }, { $pull : { cards : { id: Long("2") }}})
+    pub async fn delete_card(&self, user_id: UserId, card_id : CardId) -> Result<(), DatabaseError> {
+        let is_device_type_empty = self.is_card_device_of(user_id.clone(), card_id, DeviceType::Empty()).await;
+
+        match is_device_type_empty {
+            Some(is_empty) => {
+                if is_empty {
+                    return Err(DatabaseError::CannotDeleteCardWithEmptyDeviceType);
+                }
+                // else continue
+            },
+            None => {
+                return Err(DatabaseError::CheckingCardDeviceTypeFailed);
+            }
+        }
+
+        let filter = match to_document(&user_id) {
+            Some(f) => f,
+            None => { return Err(DatabaseError::UserIdFilterCreationFailed) }
+        };
+
+        let update_document = doc! {
+            "$pull" : { "cards" : { "id" : card_id } }
+        };
+
+        let update_result = self.collection.update_one(filter, update_document, None).await;
+
+        if update_result.is_err() {
+            return Err(DatabaseError::DatabaseCardUpdateFailed);
+        }
 
         Ok(())
     }
 
+    async fn is_card_device_of(&self, user_id: UserId, card_id : CardId, device_type : DeviceType) -> Option<bool> {
+        let filter = doc! {
+            "$and": [
+                { "_id": user_id._id},
+                { "cards.id": Bson::Int64(card_id) }
+            ]
+        };
 
+        let find_options = FindOneOptions::builder().projection(doc! {"cards.$": 1}).build();
+        let find_result = self.collection.find_one(filter, find_options).await;
 
-//pub async fn delete_card(&self, user_id: UserId, card_id : CardId) {
+        let fr = match find_result {
+            Ok(fr) => fr,
+            Err(e) => {
+                eprintln!("Getting user basic info failed: {}", e);
+                return None;
+            }
+        };
 
-//}
+       let find_result_document = match fr {
+            Some(data) =>  data,
+            None => return None
+        };
+
+        let card_option = match find_result_document.get_array("cards") {
+            Ok(res) => {
+                let first_entry = match res.first() {
+                    Some(entry) => entry,
+                    None => { return None }
+                };
+
+                first_entry.as_document()
+            },
+            Err(_) => { return None }
+        };
+
+        let card = match card_option {
+            Some(card) => card,
+            None => { return None; }
+        };
+
+        let card_device_type = match card.get_i32("device_type") {
+            Ok(res) => res,
+            Err(_) => { return None; }
+        };
+
+        let card_device_type = DeviceType::new(card_device_type as i64);
+
+        Some(card_device_type == device_type)
+    }
 }

@@ -42,7 +42,7 @@ where
 }
 
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DatabaseObjectId {
     _id: ObjectId,
 }

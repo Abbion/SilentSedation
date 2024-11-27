@@ -18,7 +18,6 @@
 
     <CardOptionState v-if="state == CardState.Options"
                     :p_card_name="card_data.name"
-                    @CardOptionsEditButtonClicked="GoToEditState" 
                     @CardOptionsDeleteButtonClicked="HandleDeleteCard"
                     @CardOptionsReturnButtonClicked="GoToUseState"></CardOptionState>
 
@@ -68,7 +67,7 @@
                     token: token,
                     card_id: card_data.id
             })
-            .then(function (response) {
+            .then(function(response) {
                 //Check if the id is correct. Compare to p_card_id
                 let card_id = response.data["card_id"];
                 
@@ -100,9 +99,10 @@
 
                 GoToUseState();
                 
-            }).catch( function(error) {
-                console.log("Device card ", card_data.id, " error: ", error);
             })
+            .catch(function(error) {
+                console.log("Device card ", card_data.id, " error: ", error);
+            });
         }
     }
 
@@ -158,7 +158,7 @@
                 emit('CardCreated')
             }).catch(function(error){
                 console.log("Device card - Handle edit state data error: ", error);
-            })
+            });
         }
     }
     
@@ -173,12 +173,29 @@
     }
 
     function HandleDeleteCard() {
-        card_data.name = "";
-        card_data.device_type = DeviceType.Empty;
-        card_data.code = [];
+        let token = localStorage.getItem('token');
 
-        cancel_from_edit = true;
-        emit('CardRemoved', card_data.id);
+        if (token !== null) {
+            axios.post('http://localhost:9000/delete_card', {
+                    token: token,
+                    card_id: card_data.id
+            })
+            .then(function(response) {
+                console.log("delete resp: ", response.data);
+
+                card_data.name = "";
+        
+                card_data.device_type = DeviceType.Empty;
+                card_data.code = [];
+
+                cancel_from_edit = true;
+                
+                emit('CardRemoved', card_data.id);
+            })
+            .catch(function(error) {
+                console.log("Device card ", card_data.id, " error: ", error);
+            });
+        }
     }
 </script>
 
