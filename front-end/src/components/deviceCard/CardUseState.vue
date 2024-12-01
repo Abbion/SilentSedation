@@ -8,7 +8,8 @@
             <div class="s_UseOptions s_CursorPointer s_PreventSelect" @click="$emit('CardOptionsClicked')">...</div>
         </div>
         <div class="s_UseContent">
-             <SchockerControll v-if="p_card_data.device_type == DeviceType.ShockCaller" :p_properties="p_card_data.device_properties"></SchockerControll>
+             <SchockerControll v-if="p_card_data.device_type == DeviceType.ShockCaller" :p_properties="p_card_data.device_properties"
+                                @PowerLevelChanged="UpdateProperties"></SchockerControll>
         </div>
     </div>
 </template>
@@ -19,9 +20,22 @@
     import SchockerControll from './deviceControllers/SchockerControll.vue'
     import { defineProps } from 'vue'
 
-    defineProps<{
+    const props = defineProps<{
         p_card_data : CardData
     }>();
+
+    const emit = defineEmits(['PropertiesUpdated', 'CardOptionsClicked']);
+
+    function UpdateProperties(power_level : number) {
+        switch (props.p_card_data.device_type) {
+            case DeviceType.ShockCaller: {
+                console.log("send power level " + power_level);
+                
+                emit('PropertiesUpdated', { "power" : power_level });
+                break;
+            }
+        }
+    }
 
 </script>
 

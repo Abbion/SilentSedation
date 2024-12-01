@@ -15,7 +15,6 @@ def add_card():
 
         if should_add_card == "Y":
             print("Select type")
-            print("0. Empty")
             print("1. Schock coller")
 
             device_type = input("Type: ")
@@ -26,7 +25,7 @@ def add_card():
             
             device_type = int(device_type)
 
-            if device_type < 0 or device_type > 1:
+            if device_type < 1 or device_type > 1:
                 print("Device type out of range")
                 continue
 
@@ -51,6 +50,8 @@ def add_card():
             next_id += 1
 
         else:
+            #Add empty device
+            cards += ", {id: Long(" + str(next_id) + "), device_type: 0, code: \"123456\"}"
             return (cards, next_id)
 
 

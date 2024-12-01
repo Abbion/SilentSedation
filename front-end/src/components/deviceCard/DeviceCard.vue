@@ -9,12 +9,13 @@
 
     <CardEditState v-if="state == CardState.Edit" 
                   :p_card_data="card_data"
-                  @CardEditAddButtonClicked="HandleEditStateData" 
+                  @CardEditAddButtonClicked="CreateCard"
                   @CardEditCancelButtonClicked="HandleEditStateCancel"></CardEditState>
 
     <CardUseState v-if="state == CardState.Use"
                   :p_card_data="card_data"
-                  @CardOptionsClicked="GoToOptionState"></CardUseState>
+                  @CardOptionsClicked="GoToOptionState"
+                  @PropertiesUpdated="UpdateCardProperties"></CardUseState>
 
     <CardOptionState v-if="state == CardState.Options"
                     :p_card_name="card_data.name"
@@ -137,29 +138,36 @@
         state.value = CardState.Add;
     }
 
-    function HandleEditStateData(data : CardData) {
-        var firstEdit = card_data.name === "" ? true : false;
+    function CreateCard(data : CardData) {
+        UpdateCard(data, function() {
+            emit('CardCreated')
+        });
+    }
 
-        if (firstEdit) {
-            console.log("Create card post: ", data);
+    function UpdateCard(data : CardData, on_success : Function = function(){ }) {
+        console.log("Create card post: ", data);
             
-            let token = localStorage.getItem('token');
+        let token = localStorage.getItem('token');
 
-            if (token === null) {
-                console.log("Device card - Handle edit state data error: token is null");
-                return;
-            }
-
-            axios.post('http://localhost:9000/update_card',{
-                token: token,
-                card_data : data
-            }).then(function() {
-                GetCard();
-                emit('CardCreated')
-            }).catch(function(error){
-                console.log("Device card - Handle edit state data error: ", error);
-            });
+        if (token === null) {
+            console.log("Device card - Handle edit state data error: token is null");
+            return;
         }
+
+        axios.post('http://localhost:9000/update_card',{
+            token: token,
+            card_data : data
+        }).then(function() {
+            GetCard();
+            on_success();
+        }).catch(function(error) {
+            console.log("Device card - Handle edit state data error: ", error);
+        });
+    }
+
+    function UpdateCardProperties(properties : Object) {
+        card_data.device_properties = properties;
+        UpdateCard(card_data);
     }
     
     function HandleEditStateCancel() {        

@@ -1,5 +1,6 @@
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, Bson, Document };
+use std::cmp::{ max, min };
 use crate::communication::requests::CardData;
 use crate::communication::responses::CreateCardResponse;
 use crate::communication::{ requests, responses };
@@ -301,7 +302,11 @@ impl UserDataCollection {
 
         match DeviceType::new(card_data.device_type) {
             DeviceType::ShockCaller(_) => {
-                if let Some(power) = card_data.device_properties.get("power").and_then(|v| v.as_i64()) {
+                if let Some(mut power) = card_data.device_properties.get("power").and_then(|v| v.as_i64()) {
+                    //Clamp to 1 - 10
+                    power = max(1, power);
+                    power = min(10, power);
+
                     update_doc.insert("cards.$.power", power as i32);
                 }
                 else {

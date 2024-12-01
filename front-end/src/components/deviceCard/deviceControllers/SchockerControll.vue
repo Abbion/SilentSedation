@@ -40,7 +40,7 @@
     import { ref, defineProps, onMounted } from 'vue'
     import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
 
-    let power_level = ref(5);
+    let power_level = ref<number>(5);
     let decrease_power_clicked = ref(false);
     let increase_power_clicked = ref(false);
     let mouse_down_on_decrease_button = false;
@@ -52,6 +52,9 @@
     const props = defineProps<{
         p_properties: Record<string, any>;
     }>();
+
+    const emit = defineEmits(['PowerLevelChanged']);
+
 
     onMounted(()=> {
         console.log("props: " + props.p_properties + " - " + DeviceTypeToString(DeviceType.ShockCaller));
@@ -75,6 +78,8 @@
         if (power_level.value < 1)
             power_level.value = 1;
 
+        emit('PowerLevelChanged', power_level.value);
+
         decrease_power_clicked.value = false;
         mouse_down_on_decrease_button = false;
     }
@@ -92,6 +97,8 @@
 
         if (power_level.value > 10)
             power_level.value = 10;
+
+        emit('PowerLevelChanged', power_level.value);
 
         increase_power_clicked.value = false;
         mouse_down_on_increase_button = false;
@@ -210,7 +217,7 @@
         color: var(--color-main-light);
 
         height: 50px;
-        width: 50px;
+        width: 60px;
 
         margin-left: 3px;
         margin-right: 3px;
