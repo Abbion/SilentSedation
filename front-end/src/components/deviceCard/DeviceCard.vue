@@ -139,14 +139,16 @@
     }
 
     function CreateCard(data : CardData) {
-        UpdateCard(data, function() {
-            emit('CardCreated')
+        UpdateCard(data)
+        .then(function() {
+            GetCard();
+            emit('CardCreated');
+        }).catch(function(error) {
+            console.log("Device card - Handle create card error: ", error);
         });
     }
 
-    function UpdateCard(data : CardData, on_success : Function = function(){ }) {
-        console.log("Create card post: ", data);
-            
+    async function UpdateCard(data : CardData) {
         let token = localStorage.getItem('token');
 
         if (token === null) {
@@ -154,20 +156,18 @@
             return;
         }
 
-        axios.post('http://localhost:9000/update_card',{
+        return axios.post('http://localhost:9000/update_card',{
             token: token,
             card_data : data
-        }).then(function() {
-            GetCard();
-            on_success();
-        }).catch(function(error) {
-            console.log("Device card - Handle edit state data error: ", error);
         });
     }
 
     function UpdateCardProperties(properties : Object) {
         card_data.device_properties = properties;
-        UpdateCard(card_data);
+        UpdateCard(card_data)
+        .catch(function(error) {
+            console.log("Device card - Handle update card properties error: ", error);
+        });
     }
     
     function HandleEditStateCancel() {        

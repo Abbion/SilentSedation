@@ -52,6 +52,7 @@ def add_card():
         else:
             #Add empty device
             cards += ", {id: Long(" + str(next_id) + "), device_type: 0, code: \"123456\"}"
+            next_id += 1
             return (cards, next_id)
 
 

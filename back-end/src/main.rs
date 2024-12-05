@@ -180,6 +180,8 @@ async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: 
 
     let serialized_response = serde_json::to_string(&next_card_id_response);
 
+    println!("next id response {:?}", serialized_response);
+
     let serialized_response = match serialized_response {
         Ok(response) => response,
         Err(e) => {
@@ -230,7 +232,7 @@ async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<App
 
     let serialized_response = serde_json::to_string(&get_card_response);
 
-    println!("card data: {:?}", serialized_response);
+    println!("get card data: {:?}", serialized_response);
 
     let serialized_response = match serialized_response {
         Ok(response) => response,
@@ -280,7 +282,7 @@ async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Da
 
     let serialized_response = serde_json::to_string(&create_card_response);
 
-    println!("card data: {:?}", serialized_response);
+    println!("create card data response: {:?}", serialized_response);
 
     let serialized_response = match serialized_response {
         Ok(response) => response,
@@ -319,6 +321,8 @@ async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Da
     };
 
     let card_data = &body.card_data;
+
+    println!("update card data {:?}", card_data);
 
     let user_data_collection = database::get_collections(&db).await;
     let card_update_result = user_data_collection.update_card(user_id, card_data).await;
