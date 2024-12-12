@@ -1,39 +1,44 @@
+// Rework 3.0
+
 use core::fmt;
 use std::str::FromStr;
-
 use mongodb::{ options::ClientOptions, Client, Database };
 use user_data::UserDataCollection;
+use serde::{Serialize, Deserialize};
+use bson::{ Document, oid::ObjectId };
 
 pub mod error_types;
 mod user_data;
 
-use serde::{Serialize, Deserialize};
-use bson::{ Document, oid::ObjectId };
+const MONGO_DB_ADDRES : &str = "localhost:27017";
+const MONGO_DB_APP_NAME : &str = "user_server";
+const APP_DB_NAME : &str = "silent_sedation_db";
+pub const USER_COLLECTION_NAME : &str = "user_data";
 
-fn to_document<T>(data: &T) -> Option<Document>
+fn to_document<T>(data : &T) -> Option<Document>
 where
     T: Serialize + Deserialize<'static>,
 {
     let json_string = match serde_json::to_string(data) {
         Ok(json) => json,
-        Err(err) => {
-            eprintln!("Struct to json string failed: {}", err);
+        Err(error) => {
+            eprintln!("Struct to json string failed: {}", error);
             return  None;
         }
     };
 
     let json_value = match serde_json::from_str::<serde_json::Value>(&json_string) {
         Ok(value) => value,
-        Err(err) => {
-            eprintln!("Json to value failed: {}", err);
+        Err(error) => {
+            eprintln!("Json to value failed: {}", error);
             return None;
         }
     };
 
     let bson_document = match bson::to_document(&json_value) {
         Ok(document) => document,
-        Err(err) => {
-            eprintln!("Value to document failed: {}", err);
+        Err(error) => {
+            eprintln!("Value to document failed: {}", error);
             return None;
         }
     };
@@ -44,12 +49,12 @@ where
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DatabaseObjectId {
-    _id: ObjectId,
+    _id : ObjectId,
 }
 
 impl fmt::Display for DatabaseObjectId {
-       fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self._id)
+       fn fmt(&self, formater : &mut fmt::Formatter) -> fmt::Result {
+        write!(formater, "{}", self._id)
     } 
 }
 
@@ -68,40 +73,40 @@ pub type UserId = DatabaseObjectId;
 pub type CardId = i64;
 
 pub async fn connect_to_database() -> Database {
-    let client_options = ClientOptions::parse("mongodb://localhost:27017").await;
+    let parse_result = ClientOptions::parse(format!("mongodb://{}", MONGO_DB_ADDRES)).await;
 
-    let mut client_options = match client_options {
-        Ok(co) => co,
-        Err(err) => {
-            panic!("client options parse failed: {}", err);
+    let mut client_options = match parse_result {
+        Ok(options) => options,
+        Err(error) => {
+            panic!("Client options parse failed: {}", error);
         }
     };
 
-    client_options.app_name = Some("silent_server".to_string());
+    client_options.app_name = Some(String::from(MONGO_DB_APP_NAME));
 
-    let client = Client::with_options(client_options);
+    let result = Client::with_options(client_options);
 
-    let client = match client {
-        Ok(c) => c,
-        Err(err) => {
-            panic!("client creation faild: {}", err);
+    let client = match result {
+        Ok(client) => client,
+        Err(error) => {
+            panic!("client creation faild: {}", error);
         }
     };
 
-    client.database("silent_sedation_db") 
+    client.database(APP_DB_NAME) 
 }
 
-async fn get_collection_names(db: &Database) -> Vec<String> {
+async fn get_collection_names(db : &Database) -> Vec<String> {
     match db.list_collection_names(None).await {
-        Ok(cn) => cn,
-        Err(e) => {
-            eprintln!("Collection names request failed: {}", e);
+        Ok(collection_name) => collection_name,
+        Err(error) => {
+            eprintln!("Collection names request failed: {}", error);
             Vec::new()
         }
     }
 }
 
-pub async fn get_collections(db: &Database) -> UserDataCollection {
+pub async fn get_collections(db : &Database) -> UserDataCollection {
     let collection_names = get_collection_names(db).await;
 
     if collection_names.is_empty() {
@@ -109,11 +114,10 @@ pub async fn get_collections(db: &Database) -> UserDataCollection {
     }
 
     for collection_name in collection_names {
-        if collection_name.eq("user_data") {
+        if collection_name.eq(USER_COLLECTION_NAME) {
             return UserDataCollection::new(db);
         }
     }
     
-    //TODO: return option
     UserDataCollection::new(db)
 }

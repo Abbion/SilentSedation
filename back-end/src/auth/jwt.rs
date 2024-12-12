@@ -1,3 +1,5 @@
+// Rework 3.0
+
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -49,8 +51,8 @@ impl UserToken {
                 let seconds_in_days = days_till_expire * 24 * 60 * 60;
                 self.exp = duration.as_secs() as usize + seconds_in_days;
             },
-            Err(e) => {
-                eprint!("{}", e);
+            Err(error) => {
+                eprintln!("{}", error);
                 self.exp = 0;
             }
         }

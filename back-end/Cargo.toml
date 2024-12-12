@@ -14,3 +14,4 @@ jsonwebtoken = "9.3.0"
 mongodb = "2.8.2"
 bson = "2.10.0"
 tokio = { version="1.37.0", features=["full"] }
+env_logger="0.10.0"

@@ -1,0 +1,2 @@
+1. Make spaces between : -> value name : value type
+2. Print errors with eprintln!

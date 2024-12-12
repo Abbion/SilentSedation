@@ -1,3 +1,5 @@
+// Rework 3.0
+
 use serde::Deserialize;
 use std::{fs::File, io::BufReader, path::Path};
 
@@ -15,11 +17,11 @@ pub async fn get_private_keys() -> PrivateKeys {
             let reader = BufReader::new(file);
             serde_json::from_reader::<BufReader<File>, PrivateKeys>(reader)            
         }
-        Err(e) => { panic!("file opening failed: {}", e); }
+        Err(error) => { panic!("file opening failed: {}", error); }
     };
 
     match key_data {
         Ok(keys) => keys,
-        Err(e) => { panic!("parse failed: {}", e); }
+        Err(error) => { panic!("parse failed: {}", error); }
     }
 }

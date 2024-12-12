@@ -1,4 +1,5 @@
-//Rework 2.0
+//Rework 3.0
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -13,7 +14,7 @@ pub enum DeviceType{
 }
 
 impl DeviceType {
-    pub fn new(type_id: i64) -> DeviceType {
+    pub fn new(type_id : i64) -> DeviceType {
         match type_id {
             1 => return DeviceType::ShockCaller(None),
             _ => return DeviceType::Empty()
