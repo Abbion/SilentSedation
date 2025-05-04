@@ -1,10 +1,13 @@
 // Rework 3.0
 
-use std::sync::Mutex;
+use std::io::Lines;
+use std::sync::{Arc, Mutex};
 use actix_cors::Cors;
 use actix_web::{web::Data, App, HttpServer };
 use mongodb::Database;
 use private::PrivateKeys;
+use tokio::net::TcpListener;
+use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 mod constants;
 mod auth;
@@ -42,6 +45,38 @@ async fn initialize() -> (Database, PrivateKeys) {
     (db, private_keys)
 }
 
+async fn handle_device_connection(stream : tokio::net::TcpStream) {
+    println!("Device connected: {:?}", stream);
+
+    let (read_half, mut write_half) = stream.into_split();
+    let reader = BufReader::new(read_half);
+    let mut lines = reader.lines();
+
+    while let Ok(Some(line)) = lines.next_line().await {
+        println!("Socket received: {}", line);
+
+        let response = format!("ACK: {}\n", line);
+        if let Err(e) = write_half.write_all(response.as_bytes()).await {
+            eprintln!("Failed to write to arduino: {}", e);
+            break;
+        }
+    }
+
+    println!("Device disconnected");
+}
+
+async fn start_socket_server() -> std::io::Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:9010").await?;
+    println!("Socket server listening on port 9010");
+
+    loop {
+        let (socket, _) = listener.accept().await?;
+        tokio::spawn(async move {
+            handle_device_connection(socket).await;
+        });
+    }
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let (db, private_keys) =  initialize().await;
@@ -49,6 +84,10 @@ async fn main() -> std::io::Result<()> {
     let web_data = Data::new(state::AppState{
         jwt : auth::jwt::JsonWebTokenData::new(&private_keys),
         db : Mutex::new(db)
+    });
+
+    tokio::spawn(async move {
+        start_socket_server().await.unwrap();
     });
 
     HttpServer::new(move || {
@@ -70,6 +109,8 @@ async fn main() -> std::io::Result<()> {
         .service(services::delete_card)
         //Device calls
         .service(services::register_device)
+        //.service(services::generate_code_for_device)
+        //.service(services::connect_device_by_code)
     })
     .workers(4)
     .bind(("127.0.0.1", 9000))?
