@@ -47,3 +47,10 @@ pub struct DeleteCardRequest {
     pub token : String,
     pub card_id : CardId
 }
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct RegisterDeviceRequest {
+    pub device_id : String,
+    pub device_type : i64,
+    pub device_owner : String
+}

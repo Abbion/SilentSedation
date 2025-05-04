@@ -68,6 +68,8 @@ async fn main() -> std::io::Result<()> {
         .service(services::create_card)
         .service(services::update_card)
         .service(services::delete_card)
+        //Device calls
+        .service(services::register_device)
     })
     .workers(4)
     .bind(("127.0.0.1", 9000))?

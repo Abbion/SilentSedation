@@ -1,0 +1,1 @@
+db.device_data.insertOne([ { device_id: "device_1", user_id: null }  ])

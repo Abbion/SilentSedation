@@ -37,6 +37,7 @@
     import { DeviceType, StringToDeviceType } from '../common/Enums';
 
     import axios from 'axios';
+import { log } from 'console'
 
     enum CardState {
         Add,
@@ -99,7 +100,6 @@
                 card_data.code = device_code;
 
                 GoToUseState();
-                
             })
             .catch(function(error) {
                 console.log("Device card ", card_data.id, " error: ", error);
@@ -143,6 +143,31 @@
         .then(function() {
             GetCard();
             emit('CardCreated');
+        }).then(function() {
+            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
+            
+
+            let example_code = [1, 2, 3, 4, 5];
+            let example_device_type = DeviceType.ShockCaller;
+
+            let token = localStorage.getItem('token');
+
+            if (token === null) {
+                console.log("Device card - Find device error: token is null");
+                return;
+            }
+
+            axios.post('http:/localhost:9001/find_device', {
+                token: token,
+                code: example_code,
+                device_type: example_device_type
+            }).catch(function(data){
+                console.log(data);
+            }).catch(function(error){
+                console.log("Device card - Finding device error: ", error);
+            });
+
+
         }).catch(function(error) {
             console.log("Device card - Handle create card error: ", error);
         });

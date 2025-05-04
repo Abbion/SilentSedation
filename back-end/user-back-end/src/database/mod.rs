@@ -4,16 +4,46 @@ use core::fmt;
 use std::str::FromStr;
 use mongodb::{ options::ClientOptions, Client, Database };
 use user_data::UserDataCollection;
+use device_data::DeviceDataCollection;
 use serde::{Serialize, Deserialize};
 use bson::{ Document, oid::ObjectId };
 
 pub mod error_types;
 mod user_data;
+mod device_data;
 
 const MONGO_DB_ADDRES : &str = "localhost:27017";
 const MONGO_DB_APP_NAME : &str = "user_server";
 const APP_DB_NAME : &str = "silent_sedation_db";
 pub const USER_COLLECTION_NAME : &str = "user_data";
+pub const DEVICE_COLLECTION_NAME : &str = "device_data";
+
+pub enum CollectionType {
+    UserCollection,
+    DeviceCollection
+}
+
+impl CollectionType {
+    fn as_str(&self) -> &str {
+        match self {
+            CollectionType::UserCollection => USER_COLLECTION_NAME,
+            CollectionType::DeviceCollection => DEVICE_COLLECTION_NAME
+        }
+    }
+}
+
+pub enum Collection {
+    User(UserDataCollection),
+    Device(DeviceDataCollection)
+}
+
+pub struct DatabaseReadError(&'static str);
+
+impl fmt::Display for DatabaseReadError {
+    fn fmt(&self, f : &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Database error: {}", self.0)
+    }
+}
 
 fn to_document<T>(data : &T) -> Option<Document>
 where
@@ -67,10 +97,15 @@ impl DatabaseObjectId {
 
         Some(DatabaseObjectId{_id: mongo_id})
     }
+
+    pub fn compare(&self, cmp : &DatabaseObjectId) -> bool {
+        return self._id == cmp._id;
+    }
 }
 
 pub type UserId = DatabaseObjectId;
 pub type CardId = i64;
+pub type DeviceId = DatabaseObjectId;
 
 pub async fn connect_to_database() -> Database {
     let parse_result = ClientOptions::parse(format!("mongodb://{}", MONGO_DB_ADDRES)).await;
@@ -106,18 +141,22 @@ async fn get_collection_names(db : &Database) -> Vec<String> {
     }
 }
 
-pub async fn get_collections(db : &Database) -> UserDataCollection {
+pub async fn get_collection(db : &Database, collection_type : CollectionType) -> Result<Collection, DatabaseReadError> {
     let collection_names = get_collection_names(db).await;
 
     if collection_names.is_empty() {
         panic!("collection names returned empty!");
     }
 
-    for collection_name in collection_names {
-        if collection_name.eq(USER_COLLECTION_NAME) {
-            return UserDataCollection::new(db);
+    let selected_collection_name = collection_type.as_str();
+
+    if collection_names.contains(&selected_collection_name.to_string())
+    {
+        match collection_type {
+            CollectionType::UserCollection => return Ok(Collection::User(UserDataCollection::new(db))),
+            CollectionType::DeviceCollection => return Ok(Collection::Device(DeviceDataCollection::new(db)))
         }
     }
-    
-    UserDataCollection::new(db)
+
+    Err(DatabaseReadError("Cound not find collection!"))
 }
