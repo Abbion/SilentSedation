@@ -1,11 +1,10 @@
 // Rework 3.0
 
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{Arc, Mutex, MutexGuard};
 use actix_web::{http::header::ContentType, post, web::{ self }, HttpResponse, Responder};
-use bson::oid::ObjectId;
 use mongodb::Database;
-use crate::{communication::{ requests, responses }, constants, database::{DatabaseObjectId, DeviceId}};
-use crate::database::{self, CollectionType, UserId, Collection };
+use crate::{code_generator::Code, communication::{ requests, responses }, constants::{self, MAX_SHUFFLE_COUNT}, database::{ DatabaseObjectId, DeviceId }};
+use crate::database::{ self, CollectionType, UserId, Collection };
 use crate::database::error_types::DatabaseError;
 use crate::auth;
 use crate::state::AppState;
@@ -42,7 +41,7 @@ fn get_user_id(token: &String, jwt_decoder: &auth::jwt::JsonWebTokenData, functi
 }
 
 #[post("/login")]
-pub async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal login error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -61,7 +60,7 @@ pub async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal login error: 3");
         }
     };
@@ -111,7 +110,7 @@ pub async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::
 }
 
 #[post("/get_user_page_info")]
-pub async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal get user page info error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -132,7 +131,7 @@ pub async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, 
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal get next id error: 3");
         }
     };
@@ -161,7 +160,7 @@ pub async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, 
 }
 
 #[post("/get_next_card_id")]
-pub async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal get next id error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -182,7 +181,7 @@ pub async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, da
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal get next id error: 3");
         }
     };
@@ -210,7 +209,7 @@ pub async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, da
 }
 
 #[post("/get_card")]
-pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal get card error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -233,7 +232,7 @@ pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal get card error: 3");
         }
     };
@@ -261,7 +260,7 @@ pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data
 }
 
 #[post("/create_card")]
-pub async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal create card error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -282,7 +281,7 @@ pub async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal create card error: 3");
         }
     };
@@ -310,7 +309,7 @@ pub async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web
 }
 
 #[post("/update_card")]
-pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal update card error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -333,7 +332,7 @@ pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal update card error: 3");
         }
     };
@@ -361,7 +360,7 @@ pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web
 }
 
 #[post("/delete_card")]
-pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal delete card error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -384,7 +383,7 @@ pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web
 
     let user_collection= match collection {
         Collection::User(user) => user,
-        Collection::Device(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal delete card error: 3");
         }
     };
@@ -418,7 +417,7 @@ pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web
 }
 
 #[post("/register_device")]
-pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, data: web::Data<AppState>) -> impl Responder {
+pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
     let db = match lock_database(&data.db, "Internal device regisration error: 1") {
         Ok(db) => db,
         Err(response) => return response
@@ -434,7 +433,7 @@ pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, d
 
     let device_collection= match collection {
         Collection::Device(device) => device,
-        Collection::User(_) => {
+        _ => {
             return HttpResponse::InternalServerError().body("Internal device registration error: 3");
         }
     };
@@ -466,8 +465,82 @@ pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, d
     HttpResponse::Ok().body("registered")
 }
 
+#[post("/debug")]
+pub async fn debug(data: web::Data<Arc<AppState>>) -> impl Responder {
+    HttpResponse::Ok().body(format!("Is empty: {:?}", data.generated_codes.lock().unwrap().is_empty()))
+}
+
+#[post("/generate_device_code")]
+pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>, data: web::Data<Arc<AppState>>) -> impl Responder {
+    let db = match lock_database(&data.db, "Internal device code generation error: 1") {
+        Ok(db) => db,
+        Err(response) => return response
+    };
+
+    let collection = match database::get_collection(&db, CollectionType::DeviceCodeCollection).await {
+        Ok(device_code_collection) => device_code_collection,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal device code generation error: 2");
+        }
+    };
+
+    let mut code = Code::new();
+    let mut shuffle_counter : u32 = 0;
+    let mut generated_codes = match data.generated_codes.lock() {
+        Ok(codes) => codes,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal device code generation error: 3");
+        }
+    };
+
+    loop {
+        if shuffle_counter > MAX_SHUFFLE_COUNT
+        {
+            code = Code::new();
+            shuffle_counter = 0;
+        }
+
+        if generated_codes.get(&code).is_none() {
+            break;
+        }
+        
+        code.shuffle();
+        shuffle_counter += 1;
+    }
+
+    generated_codes.insert(code.clone());
+
+    let device_code_collection= match collection {
+        Collection::DeviceCode(collection) => collection,
+        _ => {
+            return HttpResponse::InternalServerError().body("Internal device code generation error: 4");
+        }
+    };
+
+    let device_id = match DeviceId::from_str(&body.device_id) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal device code generation error: 5");
+        }
+    }; 
+
+    let code_string = device_code_collection.assign_code_to_device(code, device_id).await;
+
+    let code_string = match code_string {
+        Some(code_string) => code_string,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal device code generation error: 6");
+        }
+    };
+
+    HttpResponse::Ok().body(format!("Code: {}", code_string))
+}
+
 //post - Generate a access code for device
 //post - Add the device to a connection await list
+
 
 // 1. create a socket connection with the device
 // 2. Set the staus devie flag to online

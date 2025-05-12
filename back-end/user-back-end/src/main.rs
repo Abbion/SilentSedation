@@ -1,11 +1,14 @@
 // Rework 3.0
 
-use std::io::Lines;
+use std::collections::BTreeSet;
 use std::sync::{Arc, Mutex};
+use std::time::Duration;
 use actix_cors::Cors;
-use actix_web::{web::Data, App, HttpServer };
+use actix_web::{ web, App, HttpServer };
+use constants::CODE_CHECK_INTERVAL_TIME_IN_SEC;
 use mongodb::Database;
 use private::PrivateKeys;
+use state::AppState;
 use tokio::net::TcpListener;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
@@ -17,6 +20,7 @@ mod database;
 mod services;
 mod utils;
 mod state;
+mod code_generator;
 
 async fn initialize() -> (Database, PrivateKeys) {
     let db_handle = tokio::spawn(async {
@@ -65,6 +69,22 @@ async fn handle_device_connection(stream : tokio::net::TcpStream) {
     println!("Device disconnected");
 }
 
+async fn clear_old_device_codes(app_state : Arc<AppState>) {
+    let sleep_duration = Duration::from_secs(CODE_CHECK_INTERVAL_TIME_IN_SEC);
+
+    loop {
+        {
+            let codes_mutex = &app_state.generated_codes;
+            let codes = codes_mutex.lock().unwrap();
+            let empty = codes.is_empty();
+            println!("Is empty: {:?}", empty);
+        }
+
+        tokio::time::sleep(sleep_duration).await;
+    }
+
+}
+
 async fn start_socket_server() -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:9010").await?;
     println!("Socket server listening on port 9010");
@@ -78,19 +98,25 @@ async fn start_socket_server() -> std::io::Result<()> {
 }
 
 #[actix_web::main]
-async fn main() -> std::io::Result<()> {
+async fn main() {
     let (db, private_keys) =  initialize().await;
 
-    let web_data = Data::new(state::AppState{
+    let app_state = Arc::new(state::AppState{
         jwt : auth::jwt::JsonWebTokenData::new(&private_keys),
-        db : Mutex::new(db)
+        db : Mutex::new(db),
+        generated_codes : Mutex::new(BTreeSet::new())
     });
 
     tokio::spawn(async move {
         start_socket_server().await.unwrap();
     });
 
-    HttpServer::new(move || {
+    let clear_task_app_state = app_state.clone();
+    tokio::spawn(async move {
+        clear_old_device_codes(clear_task_app_state).await;
+    });
+
+    let web_server = HttpServer::new(move || {
         App::new()
             .wrap(
                 Cors::default()
@@ -99,7 +125,7 @@ async fn main() -> std::io::Result<()> {
                     .allow_any_header()
                     .max_age(3600)
             )
-        .app_data(web_data.clone())
+        .app_data(web::Data::new(app_state.clone()))
         .service(services::login_user)
         .service(services::get_user_page_info)
         .service(services::get_next_card_id)
@@ -109,11 +135,19 @@ async fn main() -> std::io::Result<()> {
         .service(services::delete_card)
         //Device calls
         .service(services::register_device)
-        //.service(services::generate_code_for_device)
-        //.service(services::connect_device_by_code)
+        .service(services::generate_device_code)
+        .service(services::debug)
     })
     .workers(4)
-    .bind(("127.0.0.1", 9000))?
-    .run()
-    .await
+    .bind(("127.0.0.1", 9000));
+
+    match web_server {
+        Ok(server) => {
+            println!("Web server has started on port: 9000");
+            let status = server.run().await;
+        }
+        Err(e) => {
+            eprintln!("The web server initialization has failed: {}", e);
+        }
+    }
 }

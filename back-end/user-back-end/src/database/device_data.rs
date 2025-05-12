@@ -5,17 +5,16 @@ use crate::{communication::requests::RegisterDeviceRequest, utils::{device_state
 
 use super::{to_document, DeviceId, DEVICE_COLLECTION_NAME};
 
-pub struct DeviceDataCollection {
-    collection : Collection<Document>
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeviceEntry {
     _id : ObjectId,
     device_type : DeviceTypeValue,
-    device_owner : String,
     device_master : Option<ObjectId>,
     device_state : DeviceStateValue
+}
+
+pub struct DeviceDataCollection {
+    collection : Collection<Document>
 }
 
 impl DeviceDataCollection {
@@ -69,7 +68,6 @@ impl DeviceDataCollection {
 
         let device_entry = DeviceEntry{ _id : device_id._id,
                                                      device_type : register_device_data.device_type,
-                                                     device_owner : register_device_data.device_owner,
                                                      device_master : None,
                                                      device_state : DeviceState::Offline.as_native_value() };
 
@@ -99,10 +97,10 @@ impl DeviceDataCollection {
     // fn assing_user_to_device()
     // fn update_device_state()
 
-    //http POST 127.0.0.1:9000/register_device device_id=680908739585f2452bf4cbbe device_type:=3 device_owner=AAA
+    //http POST 127.0.0.1:9000/register_device device_id=680908739585f2452bf4cbbe device_type:=3
 }
 
 
 //-----------------------------------------------------------------------
-// _id                       | devie_type | device_owner | device_master | device_state
+// _id                       | devie_type | device_master | device_state
 // 680908739585f2452bf4cbbe

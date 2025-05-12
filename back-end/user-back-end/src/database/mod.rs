@@ -5,36 +5,42 @@ use std::str::FromStr;
 use mongodb::{ options::ClientOptions, Client, Database };
 use user_data::UserDataCollection;
 use device_data::DeviceDataCollection;
+use device_code_data::DeviceCodeDataCollection;
 use serde::{Serialize, Deserialize};
 use bson::{ Document, oid::ObjectId };
 
 pub mod error_types;
 mod user_data;
 mod device_data;
+mod device_code_data;
 
 const MONGO_DB_ADDRES : &str = "localhost:27017";
 const MONGO_DB_APP_NAME : &str = "user_server";
 const APP_DB_NAME : &str = "silent_sedation_db";
 pub const USER_COLLECTION_NAME : &str = "user_data";
 pub const DEVICE_COLLECTION_NAME : &str = "device_data";
+pub const DEVICE_CODE_COLLECTION_NAME : &str = "device_code_data";
 
 pub enum CollectionType {
     UserCollection,
-    DeviceCollection
+    DeviceCollection,
+    DeviceCodeCollection,
 }
 
 impl CollectionType {
     fn as_str(&self) -> &str {
         match self {
             CollectionType::UserCollection => USER_COLLECTION_NAME,
-            CollectionType::DeviceCollection => DEVICE_COLLECTION_NAME
+            CollectionType::DeviceCollection => DEVICE_COLLECTION_NAME,
+            CollectionType::DeviceCodeCollection => DEVICE_CODE_COLLECTION_NAME
         }
     }
 }
 
 pub enum Collection {
     User(UserDataCollection),
-    Device(DeviceDataCollection)
+    Device(DeviceDataCollection),
+    DeviceCode(DeviceCodeDataCollection)
 }
 
 pub struct DatabaseReadError(&'static str);
@@ -154,7 +160,8 @@ pub async fn get_collection(db : &Database, collection_type : CollectionType) ->
     {
         match collection_type {
             CollectionType::UserCollection => return Ok(Collection::User(UserDataCollection::new(db))),
-            CollectionType::DeviceCollection => return Ok(Collection::Device(DeviceDataCollection::new(db)))
+            CollectionType::DeviceCollection => return Ok(Collection::Device(DeviceDataCollection::new(db))),
+            CollectionType::DeviceCodeCollection => return Ok(Collection::DeviceCode(DeviceCodeDataCollection::new(db)))
         }
     }
 

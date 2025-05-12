@@ -52,5 +52,9 @@ pub struct DeleteCardRequest {
 pub struct RegisterDeviceRequest {
     pub device_id : String,
     pub device_type : i64,
-    pub device_owner : String
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct GenerateDeviceCode {
+    pub device_id : String
 }
