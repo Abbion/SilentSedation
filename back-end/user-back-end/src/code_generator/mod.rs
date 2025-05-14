@@ -2,7 +2,7 @@ use rand::{seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 use crate::constants::DEVICE_CODE_LENGTH;
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Code {
     code : [u8; DEVICE_CODE_LENGTH]
 }

@@ -1,15 +1,16 @@
 // Rework 3.0
 
 use std::collections::BTreeSet;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 use actix_cors::Cors;
 use actix_web::{ web, App, HttpServer };
 use constants::CODE_CHECK_INTERVAL_TIME_IN_SEC;
+use database::Collection;
 use mongodb::Database;
 use private::PrivateKeys;
 use state::AppState;
-use tokio::net::TcpListener;
+use tokio::{ sync::Mutex, net::TcpListener };
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 
 mod constants;
@@ -69,15 +70,36 @@ async fn handle_device_connection(stream : tokio::net::TcpStream) {
     println!("Device disconnected");
 }
 
+async fn clear_old_device_codes_from_db(database : &Database) -> Option<Vec<String>> {
+    let collection = match database::get_collection(&database, database::CollectionType::DeviceCodeCollection).await {
+        Ok(user_collection) => user_collection,
+        Err(error) => {
+            eprintln!("Error: Getting code collection failed in clear_old_device_codes_from_db: {}", error);
+            return  None;
+        }        
+    };
+
+    let device_code_collection= match collection {
+        Collection::DeviceCode(collection) => collection,
+        _ => {
+            eprintln!("clear_old_device_codes_from_db failed to acquire the device code collection");
+            return None;
+        }
+    };
+
+    let codes = device_code_collection.remove_device_expired_codes().await;
+    println!("codes: {:?}", codes);
+
+    None
+}
+
 async fn clear_old_device_codes(app_state : Arc<AppState>) {
     let sleep_duration = Duration::from_secs(CODE_CHECK_INTERVAL_TIME_IN_SEC);
 
     loop {
         {
-            let codes_mutex = &app_state.generated_codes;
-            let codes = codes_mutex.lock().unwrap();
-            let empty = codes.is_empty();
-            println!("Is empty: {:?}", empty);
+            let acquired_db = app_state.db.lock().await;
+            clear_old_device_codes_from_db(&acquired_db).await;
         }
 
         tokio::time::sleep(sleep_duration).await;
@@ -136,7 +158,6 @@ async fn main() {
         //Device calls
         .service(services::register_device)
         .service(services::generate_device_code)
-        .service(services::debug)
     })
     .workers(4)
     .bind(("127.0.0.1", 9000));
