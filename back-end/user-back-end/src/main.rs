@@ -5,6 +5,7 @@ use std::sync::Arc;
 use std::time::Duration;
 use actix_cors::Cors;
 use actix_web::{ web, App, HttpServer };
+use code_generator::Code;
 use constants::CODE_CHECK_INTERVAL_TIME_IN_SEC;
 use database::Collection;
 use mongodb::Database;
@@ -70,7 +71,7 @@ async fn handle_device_connection(stream : tokio::net::TcpStream) {
     println!("Device disconnected");
 }
 
-async fn clear_old_device_codes_from_db(database : &Database) -> Option<Vec<String>> {
+async fn clear_old_device_codes_from_db(database : &Database) -> Option<Vec<Code>> {
     let collection = match database::get_collection(&database, database::CollectionType::DeviceCodeCollection).await {
         Ok(user_collection) => user_collection,
         Err(error) => {
@@ -87,10 +88,7 @@ async fn clear_old_device_codes_from_db(database : &Database) -> Option<Vec<Stri
         }
     };
 
-    let codes = device_code_collection.remove_device_expired_codes().await;
-    println!("codes: {:?}", codes);
-
-    None
+    device_code_collection.remove_device_expired_codes().await
 }
 
 async fn clear_old_device_codes(app_state : Arc<AppState>) {
@@ -99,12 +97,19 @@ async fn clear_old_device_codes(app_state : Arc<AppState>) {
     loop {
         {
             let acquired_db = app_state.db.lock().await;
-            clear_old_device_codes_from_db(&acquired_db).await;
+            let acquired_codes = clear_old_device_codes_from_db(&acquired_db).await;
+
+            if let Some(codes) = acquired_codes {
+                let mut codes_cache = app_state.generated_codes.lock().await;
+                
+                for code in codes {
+                    codes_cache.remove(&code);
+                }
+            }
         }
 
         tokio::time::sleep(sleep_duration).await;
     }
-
 }
 
 async fn start_socket_server() -> std::io::Result<()> {

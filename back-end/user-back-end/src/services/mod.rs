@@ -443,7 +443,7 @@ pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>,
             code = Code::new();
             shuffle_counter = 0;
         }
-
+        
         if generated_codes.get(&code).is_none() {
             break;
         }
@@ -451,8 +451,6 @@ pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>,
         code.shuffle();
         shuffle_counter += 1;
     }
-
-    generated_codes.insert(code.clone());
 
     let device_code_collection= match collection {
         Collection::DeviceCode(collection) => collection,
@@ -468,7 +466,7 @@ pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>,
         }
     }; 
 
-    let code_string = device_code_collection.assign_code_to_device(code, device_id).await;
+    let code_string = device_code_collection.assign_code_to_device(code.clone(), device_id).await;
 
     let code_string = match code_string {
         Some(code_string) => code_string,
@@ -477,6 +475,7 @@ pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>,
         }
     };
 
+    generated_codes.insert(code);
     HttpResponse::Ok().body(format!("Code: {}", code_string))
 }
 
