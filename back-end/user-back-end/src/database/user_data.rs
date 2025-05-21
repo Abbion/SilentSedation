@@ -3,6 +3,7 @@
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, Bson, Document };
 use std::cmp::{ max, min };
+use crate::code_generator::Code;
 use crate::communication::requests::CardData;
 use crate::communication::responses::CreateCardResponse;
 use crate::communication::{ requests, responses };
@@ -317,17 +318,14 @@ impl UserDataCollection {
             _ => {}
         };
 
-        let code_str = card_data.code
-            .iter()
-            .map(|num| num.to_string())
-            .collect::<Vec<String>>()
-            .join("");
+        let code = match Code::from_string(card_data.code.to_string()) {
+            Some(code) => code,
+            None => {
+                return Err(DatabaseError::CodeParsingFailed);
+            }
+        };
 
-        if code_str.len() != 6 {
-            return Err(DatabaseError::CodeParsingFailed);
-        }
-
-        update_doc.insert("cards.$.code", code_str);
+        update_doc.insert("cards.$.code", code.as_string());
 
         let update_doc_set = doc! {"$set" : update_doc};
         let update_result = self.collection.update_one(filter, update_doc_set,None).await;

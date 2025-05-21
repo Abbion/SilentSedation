@@ -167,13 +167,23 @@ async fn main() {
     .workers(4)
     .bind(("127.0.0.1", 9000));
 
-    match web_server {
+    let running_server = match web_server {
         Ok(server) => {
             println!("Web server has started on port: 9000");
-            let status = server.run().await;
+            server.run()
         }
-        Err(e) => {
-            eprintln!("The web server initialization has failed: {}", e);
+        Err(error) => {
+            eprintln!("Starting the web server failed: {}", error);
+            return;
+        }
+    };
+
+    match running_server.await {
+        Ok(_) => {
+            println!("Web server exited with OK");
+        },
+        Err(error) => {
+            eprintln!("The web server exited with an error: {}", error);
         }
     }
 }

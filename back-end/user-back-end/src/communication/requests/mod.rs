@@ -28,7 +28,7 @@ pub struct CardData {
     pub name : String,
     pub device_type : i64,
     pub device_properties : Value,
-    pub code : [u8; 6]
+    pub code : String
 }
 
 #[derive(Deserialize, Debug)]

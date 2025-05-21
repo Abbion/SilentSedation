@@ -99,19 +99,37 @@ impl DeviceCodeDataCollection {
 
         Some(codes)
     }
-
+/*
     pub fn get_device_code(&self, device : DeviceId) -> Code {
-        
 
         Code::new()
     }
-/*
-    pub fn get_device_id_by_code(code : Code) {
-
-    }
-
-    pub fn release_device(device : DeviceId) {
-
-    }
 */
+    pub async fn get_device_id_by_code(&self, code : Code) -> Option<DeviceId> {
+        let query = doc! {"code": code.as_string() };
+        let result = match self.collection.find_one(query, None).await {
+            Ok(doc) => {
+                match doc {
+                    Some(doc) => doc,
+                    None => {
+                        return None;
+                    }
+                }
+            },
+            Err(error) => {
+                eprintln!("Getting device code failed: {}", error);
+                return None;
+            }
+        };
+
+        let device_id = match result.get_object_id("device_id") {
+            Ok(id) => id,
+            Err(error) => {
+                eprintln!("Accessing device id failed: {}", error);
+                return None;
+            }
+        };
+
+        Some(DeviceId::new(device_id))
+    }
 }

@@ -95,6 +95,10 @@ impl fmt::Display for DatabaseObjectId {
 }
 
 impl DatabaseObjectId {
+    pub fn new(object_id : ObjectId) -> DatabaseObjectId {
+        DatabaseObjectId { _id: object_id }
+    }
+
     pub fn from_str(id_str : &String) -> Option<DatabaseObjectId> {
         let mongo_id = match ObjectId::from_str(&id_str) {
             Ok(id) => id,
