@@ -3,13 +3,14 @@ use bson::{ doc, oid::ObjectId, Bson, Document };
 use serde::{Deserialize, Serialize};
 use crate::{communication::requests::RegisterDeviceRequest, utils::{device_states::{ DeviceStateValue, DeviceState }, device_types::DeviceTypeValue}};
 
-use super::{to_document, DeviceId, DEVICE_COLLECTION_NAME};
+use super::{to_document, CardId, DeviceId, UserId, DEVICE_COLLECTION_NAME};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeviceEntry {
     _id : ObjectId,
     device_type : DeviceTypeValue,
     device_master : Option<ObjectId>,
+    card_id :       Option<CardId>,
     device_state : DeviceStateValue
 }
 
@@ -69,6 +70,7 @@ impl DeviceDataCollection {
         let device_entry = DeviceEntry{ _id : device_id._id,
                                                      device_type : register_device_data.device_type,
                                                      device_master : None,
+                                                     card_id : None,
                                                      device_state : DeviceState::Offline.as_native_value() };
 
         let device_entry_document = match to_document(&device_entry) {
@@ -92,6 +94,25 @@ impl DeviceDataCollection {
         }
     }
 
+    pub async fn assign_master_to_device(self, device_id : &DeviceId, user_id : &UserId, card_id : CardId) -> bool {
+        let filter = match to_document(device_id) {
+            Some(document) => document,
+            None => { return false; }
+        };
+
+        let update = doc! { "$set" : { "device_master" : user_id._id, "card_id" : card_id } };
+        let update_result = self.collection.update_one(filter, update, None).await;
+
+        match update_result {
+            Ok(_) => {
+                return true;
+            },
+            Err(error) => {
+                eprintln!("Updateing the master for device failed: {}", error);
+                return false;
+            }
+        }
+    }
     // fn get_owner_devices()
     // fn get_device_status()
     // fn assing_user_to_device()

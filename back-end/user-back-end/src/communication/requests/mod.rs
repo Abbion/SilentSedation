@@ -3,7 +3,7 @@
 use std::str;
 use serde_json::Value;
 use serde::{Deserialize, Serialize};
-use crate::database::CardId;
+use crate::{database::CardId, utils::device_types::DeviceTypeValue};
 
 #[derive(Deserialize, Debug)]
 pub struct GetCardRequest {
@@ -26,7 +26,7 @@ pub struct LoginUserRequest {
 pub struct CardData {
     pub id : CardId,
     pub name : String,
-    pub device_type : i64,
+    pub device_type : DeviceTypeValue,
     pub device_properties : Value,
     pub code : String
 }
@@ -51,10 +51,11 @@ pub struct DeleteCardRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegisterDeviceRequest {
     pub device_id : String,
-    pub device_type : i64,
+    pub device_type : i64, // Chagne it to deviceType
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GenerateDeviceCode {
-    pub device_id : String
+    pub device_id : String,
+    pub device_type : DeviceTypeValue
 }

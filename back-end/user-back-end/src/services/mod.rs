@@ -286,19 +286,76 @@ pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web
     };
 
     let card_data = &body.card_data;
+    let code = match Code::from_string(card_data.code.clone()) {
+        Some(code) => code,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal update card error: 1");
+        }
+    };
 
+    // 1. Find the device in and check the code
+    let collection = match database::get_collection(&db, CollectionType::DeviceCodeCollection).await {
+        Ok(device_code_collection) => device_code_collection,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal update card error: 2");
+        }
+    };
+
+    let device_code_collection = match collection {
+        Collection::DeviceCode(device_code) => device_code,
+        _ => {
+            return HttpResponse::InternalServerError().body("Internal update card error: 3");
+        }
+    };
+
+    // I don't know if we should inform the user that a code belongs to a different device type. 
+    // Now inform just about the inactive code
+    let device_id = match device_code_collection.get_device_id_by_code(code, body.card_data.device_type).await {
+        Some(device_id) => device_id,
+        None => {
+            return HttpResponse::Ok().json( responses::DeviceUpdateResponse {
+                success : false,
+                message : "Code inactive".to_string()
+            } );
+        }
+    };
+
+    device_code_collection.remove_device_by_device_id(&device_id).await;
+
+    // 2. Assign the master user to device
+    let collection = match database::get_collection(&db, CollectionType::DeviceCollection).await {
+        Ok(device_collection) => device_collection,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal update card error: 4");
+        }
+    };
+
+    let device_collection = match collection {
+        Collection::Device(device) => device,
+        _ => {
+            return HttpResponse::InternalServerError().body("Internal update card error: 5");
+        }
+    };
+
+    if device_collection.assign_master_to_device(&device_id, &user_id, card_data.id).await == false {
+        return HttpResponse::InternalServerError().body("Internal update card error: 6");
+    }
+
+    // 3. Add the card to the users cards
     let collection = match database::get_collection(&db, CollectionType::UserCollection).await {
         Ok(user_collection) => user_collection,
         Err(error) => {
             eprintln!("{}", error);
-            return HttpResponse::InternalServerError().body("Internal update card error: 1");
+            return HttpResponse::InternalServerError().body("Internal update card error: 7");
         }
     };
 
     let user_collection= match collection {
         Collection::User(user) => user,
         _ => {
-            return HttpResponse::InternalServerError().body("Internal update card error: 2");
+            return HttpResponse::InternalServerError().body("Internal update card error: 8");
         }
     };
 
@@ -306,15 +363,18 @@ pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web
 
     match result {
         Ok(_) => {
-            HttpResponse::Ok().content_type(ContentType::json()).body("Card updated successfuly")
+            HttpResponse::Ok().json( responses::DeviceUpdateResponse {
+                success : true,
+                message : "Card updated successfuly".to_string()
+            } )
         },
         Err(error) => {
             match error {
                 DatabaseError::CodeParsingFailed => {
-                    HttpResponse::InternalServerError().body("Internal update card error: 3")
+                    HttpResponse::InternalServerError().body("Internal update card error: 9")
                 },
                 DatabaseError::DatabaseCardUpdateFailed => {
-                    HttpResponse::InternalServerError().body("Internal update card error: 4")
+                    HttpResponse::InternalServerError().body("Internal update card error: 10")
                 }
                 _ => {
                     HttpResponse::InternalServerError().body("Internal update card error: X")
@@ -466,7 +526,7 @@ pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>,
         }
     }; 
 
-    let code_string = device_code_collection.assign_code_to_device(code.clone(), device_id).await;
+    let code_string = device_code_collection.assign_code_to_device(code.clone(), device_id, body.device_type).await;
 
     let code_string = match code_string {
         Some(code_string) => code_string,

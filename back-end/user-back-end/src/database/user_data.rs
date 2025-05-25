@@ -296,7 +296,7 @@ impl UserDataCollection {
                 { "cards.id": Bson::Int64(card_data.id) }
             ]
         };
-
+        
         let mut update_doc = doc! {
             "cards.$.device_type" : card_data.device_type as i32,
             "cards.$.device_name" : card_data.name.clone()
@@ -333,7 +333,6 @@ impl UserDataCollection {
         if update_result.is_err() {
             return Err(DatabaseError::DatabaseCardUpdateFailed);
         }
-
         Ok(())
     }
     

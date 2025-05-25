@@ -2,7 +2,7 @@ use chrono::Duration;
 use mongodb::{ Collection, Database };
 use bson::{ doc, oid::ObjectId, DateTime, Document };
 use serde::{Deserialize, Serialize};
-use crate::{code_generator::Code, constants::CODE_EXPIRATION_TIME_IN_MIN};
+use crate::{code_generator::Code, constants::CODE_EXPIRATION_TIME_IN_MIN, utils::device_types::DeviceTypeValue};
 use futures::stream::StreamExt;
 
 use super::{to_document, DeviceId, DEVICE_CODE_COLLECTION_NAME};
@@ -10,6 +10,7 @@ use super::{to_document, DeviceId, DEVICE_CODE_COLLECTION_NAME};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DeviceCodeEntry {
     device_id : ObjectId,
+    device_type : DeviceTypeValue,
     code : String,
     time_stamp : DateTime,
 }
@@ -23,9 +24,10 @@ impl DeviceCodeDataCollection {
         DeviceCodeDataCollection{ collection : db.collection::<Document>(DEVICE_CODE_COLLECTION_NAME) }
     }
 
-    pub async fn assign_code_to_device(&self, code : Code, device_id : DeviceId) -> Option<String> {
+    pub async fn assign_code_to_device(&self, code : Code, device_id : DeviceId, device_type : DeviceTypeValue) -> Option<String> {
         let device_code_entry = DeviceCodeEntry {
             device_id: device_id._id,
+            device_type,
             code : code.as_string(),
             time_stamp : DateTime::from_chrono(chrono::Utc::now())
         };
@@ -99,14 +101,9 @@ impl DeviceCodeDataCollection {
 
         Some(codes)
     }
-/*
-    pub fn get_device_code(&self, device : DeviceId) -> Code {
 
-        Code::new()
-    }
-*/
-    pub async fn get_device_id_by_code(&self, code : Code) -> Option<DeviceId> {
-        let query = doc! {"code": code.as_string() };
+    pub async fn get_device_id_by_code(&self, code : Code, device_type : DeviceTypeValue) -> Option<DeviceId> {
+        let query = doc! { "$and" : [ {"code" : code.as_string() }, { "device_type" : device_type }  ] };
         let result = match self.collection.find_one(query, None).await {
             Ok(doc) => {
                 match doc {
@@ -131,5 +128,15 @@ impl DeviceCodeDataCollection {
         };
 
         Some(DeviceId::new(device_id))
+    }
+
+    pub async fn remove_device_by_device_id(&self, device_id : &DeviceId) {
+        let query = doc! { "device_id": device_id._id };
+
+        let delete_result = self.collection.delete_one(query, None).await;
+
+        if delete_result.is_err() {
+            eprintln!("Removing device code data by device id failed: {}", delete_result.err().unwrap());
+        }
     }
 }

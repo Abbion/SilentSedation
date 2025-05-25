@@ -1,6 +1,6 @@
 // Rework 3.0
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 use std::time::Duration;
 use actix_cors::Cors;
@@ -23,6 +23,7 @@ mod services;
 mod utils;
 mod state;
 mod code_generator;
+mod events;
 
 async fn initialize() -> (Database, PrivateKeys) {
     let db_handle = tokio::spawn(async {
@@ -131,7 +132,8 @@ async fn main() {
     let app_state = Arc::new(state::AppState{
         jwt : auth::jwt::JsonWebTokenData::new(&private_keys),
         db : Mutex::new(db),
-        generated_codes : Mutex::new(BTreeSet::new())
+        generated_codes : Mutex::new(BTreeSet::new()),
+        device_events : Mutex::new(HashMap::new())
     });
 
     tokio::spawn(async move {
