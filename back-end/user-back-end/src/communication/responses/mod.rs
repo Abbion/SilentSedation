@@ -47,7 +47,7 @@ pub struct GetCardDataResponse {
     pub card_id : i64,
     pub device_name : String,
     pub device_type : DeviceType,
-    pub code : [u8; 6],
+    pub code : String,
 }
 
 #[derive(Serialize, Debug)]
@@ -56,7 +56,7 @@ pub struct CreateCardResponse {
 }
 
 #[derive(Serialize)]
-pub struct DeviceUpdateResponse {
+pub struct DeviceConnectionResponse {
     pub success: bool,
     pub  message: String,
 }

@@ -183,7 +183,7 @@ impl UserDataCollection {
                             card_id: card_id,
                             device_name: String::new(),
                             device_type: DeviceType::Empty(),
-                            code: [0, 0, 0, 0, 0, 0]
+                            code: String::from("000000")
                         }
                     },
                     DeviceType::ShockCaller(_) =>
@@ -209,19 +209,11 @@ impl UserDataCollection {
                             Err(_) => { return None; }
                         };
 
-                        let mut code_array :[u8;6] = [0; 6];
-                        for (index, number) in code.chars().enumerate() {
-                            code_array[index] = match number.to_digit(10) {
-                                Some(result) => result as u8,
-                                None => return None,
-                            } 
-                        }
-
                         responses::GetCardDataResponse{
                             card_id: card_id,
                             device_name: device_name,
                             device_type: DeviceType::ShockCaller(Some(ShockCallerData{ power: shock_power as u8 })),
-                            code: code_array
+                            code: code
                         }
                     }
                 };
