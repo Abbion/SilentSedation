@@ -1,3 +1,5 @@
+//TODO: Move this to enums
+
 use serde::{Deserialize, Serialize};
 
 pub  type DeviceStateValue = i32;

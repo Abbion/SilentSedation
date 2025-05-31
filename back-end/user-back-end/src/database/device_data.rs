@@ -23,6 +23,38 @@ impl DeviceDataCollection {
         DeviceDataCollection{ collection : db.collection::<Document>(DEVICE_COLLECTION_NAME) }
     }
 
+    pub async fn get_user_device_id_at_card_id(&self, user_id : &UserId, card_id : CardId) -> Option<DeviceId> {
+        let filter = doc! {
+            "device_master": user_id._id,
+            "card_id" : card_id
+        };
+
+        let find_options = FindOneOptions::builder().projection(doc! {"_id": 1}).build();
+        let find_result = self.collection.find_one(filter, find_options).await;
+
+        let document = match find_result {
+            Ok(document) => document,
+            Err(error) => {
+                eprintln!("Getting device id by user id and card id failed: {}", error);
+                return None;
+            }
+        };
+
+        if let Some(document) = document {
+            let device_id = match document.get_object_id("_id") {
+                Ok(id) => id,
+                Err(error) => {
+                    eprintln!("Getting device id by user id and card id failed: {}", error);
+                    return None;
+                }
+            };
+
+            return Some(DeviceId::new(device_id));
+        }
+
+        None
+    }
+
     pub async fn is_device_pressent(&self, device_id : DeviceId) -> Option<bool> {
         let filter = match to_document(&device_id) {
             Some(document) => document,

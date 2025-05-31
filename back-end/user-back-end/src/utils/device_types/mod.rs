@@ -1,16 +1,17 @@
 //Rework 3.0
+//TODO: Move this to enums
 
 use serde::{Deserialize, Serialize};
 
 pub type DeviceTypeValue = i64;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct ShockCallerData{
     pub power : u8
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-pub enum DeviceType{
+#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
+pub enum DeviceType {
     Empty(),
     ShockCaller(Option<ShockCallerData>)
 }

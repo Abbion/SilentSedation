@@ -1,8 +1,9 @@
 // Rework 3.0
 
 use std::sync::Arc;
-use actix_web::{body, http::header::ContentType, post, web::{ self }, App, HttpResponse, Responder};
-use crate::{code_generator::Code, communication::{ requests::{self, ConnectCardToDeviceRequest, PerformActionOnDeviceRequest }, responses }, constants::{self, MAX_SHUFFLE_COUNT}, database::{ DatabaseObjectId, DeviceId }};
+use actix_web::{http::header::ContentType, post, web::{ self }, HttpResponse, Responder};
+use bson::DateTime;
+use crate::{code_generator::Code, communication::{ requests::{self, ConnectCardToDeviceRequest, PerformActionOnDeviceRequest }, responses }, constants::{self, MAX_SHUFFLE_COUNT}, database::{ DatabaseObjectId, DeviceId }, enums::device_actions::DeviceActionType, events::device_events::DeviceEvent, utils::device_types::DeviceType};
 use crate::database::{ self, CollectionType, UserId, Collection };
 use crate::database::error_types::DatabaseError;
 use crate::auth;
@@ -210,7 +211,7 @@ pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data
         }
     };
 
-    let result = user_collection.get_card(user_id, card_id).await;
+    let result = user_collection.get_card(&user_id, card_id).await;
 
     let get_card_response = match result {
         Some(response) => response,
@@ -449,8 +450,93 @@ pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web
 
 #[post("/perform_action_on_device")]
 pub async fn perform_action_on_device(body: web::Json<PerformActionOnDeviceRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
-    
-    HttpResponse::Ok().body("")
+    let db = &data.db.lock().await;
+    let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
+        Ok(id) => id,
+        Err(response) => return response
+    };
+
+    let collection = match database::get_collection(&db, CollectionType::UserCollection).await {
+        Ok(user_collection) => user_collection,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 1");
+        }
+    };
+
+    let user_collection= match collection {
+        Collection::User(user) => user,
+        _ => {
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 2");
+        }
+    };
+
+    let card = match user_collection.get_card(&user_id, body.card_id).await {
+        Some(card) => card,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 3");
+        }
+    };
+
+    if card.device_type.as_native_value() != body.device_type {
+        return HttpResponse::InternalServerError().body("Internal perform action on device error: 4");
+    }
+
+    let action_type = match DeviceActionType::new(body.action_type) {
+        DeviceActionType::None => {
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 5");
+        },
+        DeviceActionType::Zap(_) => {
+            let data = match card.device_type.clone() {
+                DeviceType::ShockCaller(data) => data,
+                DeviceType::Empty() => {
+                    return HttpResponse::InternalServerError().body("Internal perform action on device error: 6");
+                }
+            };
+            
+            let power = match data {
+                Some(data) => data.power,
+                None => {
+                    return HttpResponse::InternalServerError().body("Internal perform action on device error: 7");
+                }
+            };
+
+            DeviceActionType::Zap(power)
+        }
+    };
+
+    let collection = match database::get_collection(&db, CollectionType::DeviceCollection).await {
+        Ok(device_collection) => device_collection,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 8");
+        }
+    };
+
+    let device_collection= match collection {
+        Collection::Device(device) => device,
+        _ => {
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 9");
+        }
+    };
+
+    let device_id = match device_collection.get_user_device_id_at_card_id(&user_id, body.card_id).await {
+        Some(id) => id,
+        None => {
+            return HttpResponse::InternalServerError().body("Internal perform action on device error: 10");
+        }
+    };
+
+    let device_event = DeviceEvent {
+        time_stamp : DateTime::from_chrono(chrono::Utc::now()),
+        device_type : card.device_type,
+        action_type : action_type
+    };
+
+    let mut device_events = data.device_events.lock().await;
+    device_events.insert(device_id, device_event);
+
+    HttpResponse::Ok().content_type(ContentType::json()).body("action performed")
 }
 
 #[post("/register_device")]
@@ -495,7 +581,7 @@ pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, d
         return HttpResponse::InternalServerError().body("Internal device registration error: 5");
     }
 
-    HttpResponse::Ok().body("registered")
+    HttpResponse::Ok().content_type(ContentType::plaintext()).body("registered")
 }
 
 #[post("/generate_device_code")]
@@ -552,13 +638,5 @@ pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>,
     };
 
     generated_codes.insert(code);
-    HttpResponse::Ok().body(format!("Code: {}", code_string))
+    HttpResponse::Ok().content_type(ContentType::plaintext()).body(format!("Code: {}", code_string))
 }
-
-//post - Generate a access code for device
-//post - Add the device to a connection await list
-
-
-// 1. create a socket connection with the device
-// 2. Set the staus devie flag to online
-

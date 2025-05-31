@@ -46,8 +46,7 @@ pub struct GetUserNextIdResponse {
 pub struct GetCardDataResponse {
     pub card_id : i64,
     pub device_name : String,
-    pub device_type : DeviceType,
-    pub code : String,
+    pub device_type : DeviceType
 }
 
 #[derive(Serialize, Debug)]

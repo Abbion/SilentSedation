@@ -3,7 +3,7 @@
 use std::str;
 use serde_json::Value;
 use serde::{Deserialize, Serialize};
-use crate::{database::CardId, utils::device_types::DeviceTypeValue};
+use crate::{database::CardId, enums::device_actions::DeviceActionTypeValue, utils::device_types::DeviceTypeValue};
 
 #[derive(Deserialize, Debug)]
 pub struct GetCardRequest {
@@ -55,7 +55,7 @@ pub struct PerformActionOnDeviceRequest {
     pub token : String,
     pub card_id : CardId,
     pub device_type : DeviceTypeValue,
-    pub action_type : i64 // create a type for it
+    pub action_type : DeviceActionTypeValue
 }
 
 #[derive(Serialize, Deserialize, Debug)]

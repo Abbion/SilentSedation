@@ -3,7 +3,6 @@
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, Bson, Document };
 use std::cmp::{ max, min };
-use crate::code_generator::Code;
 use crate::communication::requests::CardData;
 use crate::communication::responses::CreateCardResponse;
 use crate::communication::{ requests, responses };
@@ -132,7 +131,7 @@ impl UserDataCollection {
         };
     }
 
-    pub async fn get_card(&self, user_id : UserId, card_id : CardId) -> Option<responses::GetCardDataResponse> {
+    pub async fn get_card(&self, user_id : &UserId, card_id : CardId) -> Option<responses::GetCardDataResponse> {
         let filter = doc! {
             "$and": [
                 { "_id": user_id._id},
@@ -182,8 +181,7 @@ impl UserDataCollection {
                         responses::GetCardDataResponse{
                             card_id: card_id,
                             device_name: String::new(),
-                            device_type: DeviceType::Empty(),
-                            code: String::from("000000")
+                            device_type: DeviceType::Empty()
                         }
                     },
                     DeviceType::ShockCaller(_) =>
@@ -198,22 +196,10 @@ impl UserDataCollection {
                             Err(_) => { return None; }
                         };
 
-                        let code = match card.get_str("code") {
-                            Ok(result) => {
-                                if result.len() != constants::DEVICE_CODE_LENGTH {
-                                    return  None;
-                                }
-
-                                result.to_string()
-                            },
-                            Err(_) => { return None; }
-                        };
-
                         responses::GetCardDataResponse{
                             card_id: card_id,
                             device_name: device_name,
                             device_type: DeviceType::ShockCaller(Some(ShockCallerData{ power: shock_power as u8 })),
-                            code: code
                         }
                     }
                 };
@@ -310,15 +296,6 @@ impl UserDataCollection {
             _ => {}
         };
 
-        let code = match Code::from_string(card_data.code.to_string()) {
-            Some(code) => code,
-            None => {
-                return Err(DatabaseError::CodeParsingFailed);
-            }
-        };
-
-        update_doc.insert("cards.$.code", code.as_string());
-
         let update_doc_set = doc! {"$set" : update_doc};
         let update_result = self.collection.update_one(filter, update_doc_set,None).await;
 
@@ -330,7 +307,7 @@ impl UserDataCollection {
     
     //db.user_data.updateOne({ username : "Wiktor" }, { $pull : { cards : { id: Long("2") }}})
     pub async fn delete_card(&self, user_id : UserId, card_id : CardId) -> Result<(), DatabaseError> {
-        let is_device_type_empty = self.is_card_device_of(user_id.clone(), card_id, DeviceType::Empty()).await;
+        let is_device_type_empty = self.is_card_device_of_type(user_id.clone(), card_id, DeviceType::Empty()).await;
 
         match is_device_type_empty {
             Some(is_empty) => {
@@ -362,7 +339,7 @@ impl UserDataCollection {
         Ok(())
     }
 
-    async fn is_card_device_of(&self, user_id : UserId, card_id : CardId, device_type : DeviceType) -> Option<bool> {
+    async fn is_card_device_of_type(&self, user_id : UserId, card_id : CardId, device_type : DeviceType) -> Option<bool> {
         let filter = doc! {
             "$and": [
                 { "_id": user_id._id},
