@@ -10,6 +10,8 @@ pub struct ShockCallerData{
     pub power : u8
 }
 
+//TODO: DELETE () form EMPTY()
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub enum DeviceType {
     Empty(),

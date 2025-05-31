@@ -70,6 +70,7 @@ pub struct RegisterDeviceRequest {
     pub device_type : i64, // Chagne it to deviceType
 }
 
+//TODO: add request
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GenerateDeviceCode {
     pub device_id : String,

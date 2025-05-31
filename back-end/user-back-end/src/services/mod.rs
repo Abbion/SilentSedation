@@ -569,7 +569,10 @@ pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, d
     match is_registered {
         Some(state) => {
             if state{
-                return HttpResponse::Ok().body("registered");
+                return HttpResponse::Ok().json(responses::DeviceRegisterResponse{
+                    new_registration : false,
+                    message : "registered".to_string()
+                });
             }
         },
         None => {
@@ -581,7 +584,10 @@ pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, d
         return HttpResponse::InternalServerError().body("Internal device registration error: 5");
     }
 
-    HttpResponse::Ok().content_type(ContentType::plaintext()).body("registered")
+    HttpResponse::Ok().json(responses::DeviceRegisterResponse{
+                    new_registration : true,
+                    message : "registered".to_string()
+    })
 }
 
 #[post("/generate_device_code")]

@@ -59,3 +59,9 @@ pub struct DeviceConnectionResponse {
     pub success: bool,
     pub  message: String,
 }
+
+#[derive(Serialize)]
+pub struct DeviceRegisterResponse {
+    pub new_registration: bool,
+    pub message: String
+}

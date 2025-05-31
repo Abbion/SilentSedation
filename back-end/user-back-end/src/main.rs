@@ -4,16 +4,15 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 use std::time::Duration;
 use actix_cors::Cors;
-use actix_web::{ web, App, HttpServer };
+use actix_web::{ post, web, App, HttpResponse, HttpServer, Responder };
 use code_generator::Code;
-use constants::{ CODE_CHECK_INTERVAL_TIME_IN_SEC, EVENT_LOOP_INTERVAL_TIME_IN_MS};
-use database::{Collection, DeviceId};
+use constants::CODE_CHECK_INTERVAL_TIME_IN_SEC;
+use database::Collection;
 use mongodb::Database;
 use private::PrivateKeys;
 use state::AppState;
 use tokio::{ sync::Mutex, net::TcpListener };
-use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
-use utils::device_types::DeviceTypeValue;
+use device_handing::device_connection::handle_device_connection;
 
 mod constants;
 mod enums;
@@ -26,6 +25,7 @@ mod utils;
 mod state;
 mod code_generator;
 mod events;
+mod device_handing;
 
 async fn initialize() -> (Database, PrivateKeys) {
     let db_handle = tokio::spawn(async {
@@ -52,45 +52,6 @@ async fn initialize() -> (Database, PrivateKeys) {
     };
 
     (db, private_keys)
-}
-
-async fn handle_device_connection(stream : tokio::net::TcpStream, app_state : Arc<AppState>) {
-    println!("Device connected: {:?}", stream);
-
-    let (read_half, mut write_half) = stream.into_split();
-    let reader = BufReader::new(read_half);
-    let mut lines = reader.lines();
-
-    let mock_device_type : DeviceTypeValue = 1;
-    let mock_device_id = DeviceId::from_str(&String::from("680908739585f2452bf4cbbe")).unwrap();
-    let sleep_duration = Duration::from_millis(EVENT_LOOP_INTERVAL_TIME_IN_MS);
-
-    loop {
-        let mut device_events = app_state.device_events.lock().await;
-        let event = device_events.get(&mock_device_id);
-
-        if event.is_some() {
-            println!("New device event: {:?}", event);
-            device_events.remove(&mock_device_id);
-            break;
-        }
-
-        println!("event queue: {:?}", device_events);
-
-        while let Ok(Some(line)) = lines.next_line().await {
-            println!("Socket received: {}", line);
-
-            let response = format!("ACK: {}\n", line);
-            if let Err(e) = write_half.write_all(response.as_bytes()).await {
-                eprintln!("Failed to write to arduino: {}", e);
-                break;
-            }
-        }
-
-        tokio::time::sleep(sleep_duration).await;
-    }
-
-    println!("Device disconnected");
 }
 
 async fn clear_old_device_codes_from_db(database : &Database) -> Option<Vec<Code>> {
