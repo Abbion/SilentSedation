@@ -9,6 +9,7 @@
 
     <CardEditState v-if="state == CardState.Edit" 
                   :p_card_data="card_data"
+                  ref="edit_state_comp_ref"
                   @CardEditAddButtonClicked="CreateCard"
                   @CardEditCancelButtonClicked="HandleEditStateCancel"></CardEditState>
 
@@ -37,7 +38,6 @@
     import { DeviceType, StringToDeviceType } from '../common/Enums';
 
     import axios from 'axios';
-import { log } from 'console'
 
     enum CardState {
         Add,
@@ -51,9 +51,10 @@ import { log } from 'console'
         p_card_id: number
     }>();
 
+    let edit_state_comp_ref = ref<typeof CardEditState>();
     let state = ref(CardState.Add);
     let card_container_html = ref<HTMLDivElement>();
-    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.Empty, device_properties: {}, code: [] };
+    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.Empty, device_properties: {}, code: "" };
     let cancel_from_edit = false;
     
     onMounted(()=>{
@@ -92,12 +93,9 @@ import { log } from 'console'
                 if (device_name.length < 1)
                     throw new Error("Incomplete device name!");
                    
-                let device_code = response.data["code"];
-
                 card_data.name = device_name;
                 card_data.device_type = device_type;
                 card_data.device_properties = device_type_obj;
-                card_data.code = device_code;
 
                 GoToUseState();
             })
@@ -139,37 +137,41 @@ import { log } from 'console'
     }
 
     function CreateCard(data : CardData) {
-        UpdateCard(data)
-        .then(function() {
+        ConnectCardToDevice(data)
+        .then(function(update_return) {
+            // Check if the device was found and assigned to card
+            if (update_return && edit_state_comp_ref.value) {
+                const data = update_return.data;
+                if (data.success == false) {
+                    edit_state_comp_ref.value.HandleServerResponse(data.message);
+                    throw new Error;
+                }
+
+                edit_state_comp_ref.value.ClearFields();
+            }
+        }).then(function() {
+            UpdateCard(data)
+        }).then(function() {
             GetCard();
             emit('CardCreated');
-        }).then(function() {
-            console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
-            
-
-            let example_code = [1, 2, 3, 4, 5];
-            let example_device_type = DeviceType.ShockCaller;
-
-            let token = localStorage.getItem('token');
-
-            if (token === null) {
-                console.log("Device card - Find device error: token is null");
-                return;
-            }
-
-            axios.post('http:/localhost:9001/find_device', {
-                token: token,
-                code: example_code,
-                device_type: example_device_type
-            }).catch(function(data){
-                console.log(data);
-            }).catch(function(error){
-                console.log("Device card - Finding device error: ", error);
-            });
-
-
         }).catch(function(error) {
             console.log("Device card - Handle create card error: ", error);
+        });
+    }
+
+    async function ConnectCardToDevice(data : CardData) {
+        let token = localStorage.getItem('token');
+
+        if (token === null) {
+            console.log("Device card - Handle edit state data error: token is null");
+            return;
+        }
+
+        return axios.post('http://localhost:9000/connect_card_to_device', {
+            token : token,
+            id : data.id,
+            device_type : data.device_type,
+            code : data.code
         });
     }
 
@@ -181,7 +183,7 @@ import { log } from 'console'
             return;
         }
 
-        return axios.post('http://localhost:9000/update_card',{
+        axios.post('http://localhost:9000/update_card',{
             token: token,
             card_data : data
         });
@@ -219,7 +221,7 @@ import { log } from 'console'
                 card_data.name = "";
         
                 card_data.device_type = DeviceType.Empty;
-                card_data.code = [];
+                card_data.code = "";
 
                 cancel_from_edit = true;
                 

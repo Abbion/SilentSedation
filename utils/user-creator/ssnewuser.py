@@ -46,12 +46,12 @@ def add_card():
                 if device_type == 1:
                     cards += ", power: 5"
 
-            cards += ", code: \"123456\"}"
+            cards += "}, "
             next_id += 1
 
         else:
             #Add empty device
-            cards += ", {id: Long(" + str(next_id) + "), device_type: 0, code: \"123456\"}"
+            cards += "{id: Long(" + str(next_id) + "), device_type: 0}"
             next_id += 1
             return (cards, next_id)
 

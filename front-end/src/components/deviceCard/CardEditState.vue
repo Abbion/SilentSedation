@@ -23,7 +23,7 @@
                     device code
                 </p>
                 <div class="s_DeviceCodeInput">
-                    <div class="s_DeviceCodeInputField" :class="{ errorOutline : device_code_error }" v-for="(_, index) in 6">
+                    <div class="s_DeviceCodeInputField" :class="{ 's_ErrorOutline' : device_code_error }" v-for="(_, index) in 6">
                         <input class="s_DeviceCodeFieldInput" ref="device_code_elements" :key="index" type="text" maxlength="1"
                             @keydown="CodeDigitEntered($event as KeyboardEvent, index)"
                             @input="HandleCodeInput($event as InputEvent, index)"/>
@@ -31,7 +31,7 @@
                 </div>
             </div>
 
-            <ul class="s_EkrrorMessages">
+            <ul class="s_ErrorMessages">
                 <li v-for="(errorMessage, index) in error_messages" :key="index" class="s_ErrorMessage">
                     {{ errorMessage }}
                 </li>
@@ -56,11 +56,16 @@
     import type { CardData } from '../common/Interfaces'
     import { DeviceTypeUtils } from '../common/EnumUtils';
 
-    import { ref, defineEmits, onUpdated, onMounted } from 'vue'
+    import { ref, defineEmits, onUpdated, onMounted  } from 'vue'
 
     const props = defineProps<{
         p_card_data : CardData
     }>();
+
+    defineExpose({
+        HandleServerResponse,
+        ClearFields
+    });
 
     //Emiters
     const emit = defineEmits(['CardEditAddButtonClicked', 'CardEditCancelButtonClicked']);
@@ -122,6 +127,7 @@
         }
 
         const input_is_empty = device_code_elements.value[index].value === '';
+        device_code_error.value = false;
 
         if (input_is_empty)
         {
@@ -177,6 +183,11 @@
         }
     }
 
+    function HandleServerResponse(message : string) {
+        error_messages.value.push(message);
+        device_code_error.value = true;
+    }
+
     function ClearFields() {
         card_name.value = "";
         card_name_error.value = false;
@@ -213,10 +224,8 @@
                 name: card_name.value.toString(),
                 device_type: DeviceTypeUtils.IndexToDeviceType(index),
                 device_properties: {},
-                code: device_code_elements.value.filter(element => element).map(element => { return parseInt(element.value)}),
+                code: device_code_elements.value.filter(element => element).map(element => { return element.value}).join(''),
              };
-
-             ClearFields();
 
             emit('CardEditAddButtonClicked', returnCardData);
         }
@@ -242,11 +251,6 @@
                 error_messages.value.push("Device name should contain [6 - 24] characters!");
             }
             
-            if (is_name_input_correct) {
-                //TODO Check if name is in database
-                //errorMessages.value.push("This device name already exists in your devices!");
-            }
-
             if (is_name_input_correct) {
                 card_name_error.value = false;
                 return true;

@@ -20,3 +20,8 @@ export function DeviceTypeToString(device_type : DeviceType) : string {
 
     return "Empty";
 }
+
+export enum DeviceActionType {
+    None = 0,
+    Zap = 1
+}

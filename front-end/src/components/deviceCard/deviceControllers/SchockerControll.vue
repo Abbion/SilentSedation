@@ -26,7 +26,7 @@
             Action
         </p>
         <div class="s_ActionControllButtons">
-            <div class="s_ActionControllZapButton" :class="{ s_SchockerControllButtonClicked : zap_button_clicked }" @mousedown="ZapButtonDown" @mouseup="ZapButtonUp" @mouseleave="ResetClickDown">
+            <div class="s_ActionControllZapButton" :class="{ s_SchockerControllButtonClicked : zap_button_clicked }" @mousedown="ZapButtonDown" @mouseleave="ResetClickDown">
                 <ThunderBoltIcon class="s_SchockerThunderBoltIcon"></ThunderBoltIcon>
             </div>
         </div>
@@ -40,6 +40,8 @@
     import { ref, defineProps, onMounted } from 'vue'
     import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
 
+    const ZAP_RESET_TIME = 2000;
+
     let power_level = ref<number>(5);
     let decrease_power_clicked = ref(false);
     let increase_power_clicked = ref(false);
@@ -47,13 +49,12 @@
     let mouse_down_on_increase_button = false;
 
     let zap_button_clicked = ref(false);
-    let mouse_donw_on_zap_button = false;
 
     const props = defineProps<{
         p_properties: Record<string, any>;
     }>();
 
-    const emit = defineEmits(['PowerLevelChanged']);
+    const emit = defineEmits(['PowerLevelChanged', 'ActionPressed']);
 
 
     onMounted(()=> {
@@ -109,22 +110,19 @@
         decrease_power_clicked.value = false;
         mouse_down_on_decrease_button = false;
         mouse_down_on_increase_button = false;
-
-        zap_button_clicked.value = false;
-        mouse_donw_on_zap_button = false;
     }
 
     function ZapButtonDown() {
+        if (zap_button_clicked.value == true)
+            return;
+
         zap_button_clicked.value = true;
-        mouse_donw_on_zap_button = true;
+        setTimeout(ResetZapButton, ZAP_RESET_TIME);
+        emit('ActionPressed');
     }
 
-    function ZapButtonUp() {
-        if (!mouse_donw_on_zap_button)
-        return;
-
+    function ResetZapButton() {
         zap_button_clicked.value = false;
-        mouse_donw_on_zap_button = false;
     }
 </script>
 

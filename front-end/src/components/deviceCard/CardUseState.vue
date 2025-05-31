@@ -18,13 +18,15 @@
         </div>
         <div class="s_UseContent">
              <SchockerControll v-if="p_card_data.device_type == DeviceType.ShockCaller" :p_properties="p_card_data.device_properties"
-                                @PowerLevelChanged="UpdateProperties"></SchockerControll>
+                                @PowerLevelChanged="UpdateProperties"
+                                @ActionPressed="PerformAction"></SchockerControll>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
-    import { DeviceType } from '../common/Enums';
+    import axios from 'axios';
+import { DeviceActionType, DeviceType } from '../common/Enums';
     import type { CardData } from '../common/Interfaces';
     import SchockerControll from './deviceControllers/SchockerControll.vue'
     import { defineProps, ref } from 'vue'
@@ -51,6 +53,22 @@
                 console.log("send power level " + power_level);
                 
                 emit('PropertiesUpdated', { "power" : power_level });
+                break;
+            }
+        }
+    }
+
+    function PerformAction() {
+        let token = localStorage.getItem('token');
+
+        switch (props.p_card_data.device_type) {
+            case DeviceType.ShockCaller: {
+                axios.post('http://localhost:9000/perform_action_on_device', {
+                    token : token,
+                    card_id : props.p_card_data.id,
+                    device_type : props.p_card_data.device_type,
+                    action_type : DeviceActionType.Zap
+                });
                 break;
             }
         }
