@@ -1,9 +1,9 @@
 use std::{sync::Arc, time::Duration};
 use tokio::{io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines}, net::tcp::{OwnedReadHalf, OwnedWriteHalf}, time::timeout};
 use crate::{communication::requests::GenerateDeviceCode,
-            constants::{EVENT_LOOP_INTERVAL_TIME_IN_MS, MAX_DEVICE_DATA_REQUERT_ATTEMPTS, DEVICE_NEXT_LINE_AWAIT_TIME_IN_MS},
-            database::DeviceId,
-            enums::device_actions::DeviceActionType,
+            constants::{DEVICE_NEXT_LINE_AWAIT_TIME_IN_MS, EVENT_LOOP_INTERVAL_TIME_IN_MS, MAX_DEVICE_DATA_REQUERT_ATTEMPTS},
+            database::{self, Collection, DeviceId},
+            enums::{device_actions::DeviceActionType, web_status::WebStatus},
             events::device_events::DeviceEvent,
             state::AppState,
             utils::device_types::DeviceType };
@@ -36,6 +36,11 @@ pub async fn handle_device_connection(stream : tokio::net::TcpStream, app_state 
         return;
     }
 
+    if update_device_web_status(&device_id, WebStatus::ONLINE, app_state.clone()).await == false {
+        eprintln!("Failed to update device web status as online");
+        return;
+    }
+
     let sleep_duration = Duration::from_millis(EVENT_LOOP_INTERVAL_TIME_IN_MS);
     let device_await_duration = Duration::from_millis(DEVICE_NEXT_LINE_AWAIT_TIME_IN_MS);
 
@@ -59,8 +64,6 @@ pub async fn handle_device_connection(stream : tokio::net::TcpStream, app_state 
             }
         }
 
-        println!("Checking events");
-
         {
             let mut device_events = app_state.device_events.lock().await;
             let event = match device_events.get(&device_id) {
@@ -69,9 +72,6 @@ pub async fn handle_device_connection(stream : tokio::net::TcpStream, app_state 
                     continue;
                 }
             };
-
-
-            println!("Event: {:?}", event);
 
             let response = get_response_for_event(event, &device_type);
             device_events.remove(&device_id);
@@ -92,7 +92,33 @@ pub async fn handle_device_connection(stream : tokio::net::TcpStream, app_state 
         }
     }
 
+    if update_device_web_status(&device_id, WebStatus::OFFLINE, app_state).await == false {
+        eprintln!("Failed to update device web status as offline");
+        return;
+    }
+
     println!("Device disconnected");
+}
+
+async fn update_device_web_status(device_id : &DeviceId, web_status : WebStatus, app_state : Arc<AppState>) -> bool {
+    let db = app_state.db.lock().await;
+
+    let collection = match database::get_collection(&db, database::CollectionType::DeviceCollection).await {
+        Ok(device_collection) => device_collection,
+        Err(error) => {
+            eprintln!("Failed to update device web status: 1 {}", error);
+            return false;
+        }
+    };
+
+    let device_collection= match collection {
+        Collection::Device(device) => device,
+        _ => {
+            return false;
+        }
+    };
+
+    device_collection.update_device_status(device_id, web_status).await
 }
 
 async fn get_device_data(stream : tokio::net::TcpStream) -> (Option<GenerateDeviceCode>, Lines<BufReader<OwnedReadHalf>>, OwnedWriteHalf) {

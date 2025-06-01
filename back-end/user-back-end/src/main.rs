@@ -4,7 +4,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 use std::time::Duration;
 use actix_cors::Cors;
-use actix_web::{ post, web, App, HttpResponse, HttpServer, Responder };
+use actix_web::{ web, App, HttpServer};
 use code_generator::Code;
 use constants::CODE_CHECK_INTERVAL_TIME_IN_SEC;
 use database::Collection;
