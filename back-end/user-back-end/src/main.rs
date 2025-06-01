@@ -5,8 +5,9 @@ use std::sync::Arc;
 use std::time::Duration;
 use actix_cors::Cors;
 use actix_web::{ web, App, HttpServer};
+use chrono::Utc;
 use code_generator::Code;
-use constants::CODE_CHECK_INTERVAL_TIME_IN_SEC;
+use constants::{CODE_CHECK_INTERVAL_TIME_IN_SEC, EVENT_CHECK_INTERVAL_TIME_IN_MIN, EVENT_EXPIRATION_TIME_IN_MIN};
 use database::Collection;
 use mongodb::Database;
 use private::PrivateKeys;
@@ -95,6 +96,23 @@ async fn clear_old_device_codes(app_state : Arc<AppState>) {
     }
 }
 
+async fn clear_old_device_events_from_queue(app_state : Arc<AppState>) {
+    let sleep_duration = Duration::from_secs(EVENT_CHECK_INTERVAL_TIME_IN_MIN * 60);
+
+    loop {
+        {
+            let mut events = app_state.device_events.lock().await;
+            let current_time = Utc::now();
+
+            events.retain(|_, event|{
+                current_time.signed_duration_since(event.time_stamp.to_chrono()) < chrono::Duration::minutes(EVENT_EXPIRATION_TIME_IN_MIN)
+            });
+        }
+
+        tokio::time::sleep(sleep_duration).await;
+    }
+}
+
 async fn start_socket_server(app_state : Arc<AppState>) -> std::io::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:9010").await?;
     println!("Socket server listening on port 9010");
@@ -102,7 +120,7 @@ async fn start_socket_server(app_state : Arc<AppState>) -> std::io::Result<()> {
     loop {
         let (socket, _) = listener.accept().await?;
         let device_app_state = app_state.clone();
-
+    
         tokio::spawn(async move {
             handle_device_connection(socket, device_app_state).await;
         });
@@ -125,9 +143,14 @@ async fn main() {
         start_socket_server(socket_server_app_state).await.unwrap();
     });
 
-    let clear_task_app_state = app_state.clone();
+    let clear_codes_task_app_state = app_state.clone();
     tokio::spawn(async move {
-        clear_old_device_codes(clear_task_app_state).await;
+        clear_old_device_codes(clear_codes_task_app_state).await;
+    });
+
+    let clear_events_task_app_state = app_state.clone();
+    tokio::spawn(async move {
+        clear_old_device_events_from_queue(clear_events_task_app_state).await;
     });
 
     let web_server = HttpServer::new(move || {
