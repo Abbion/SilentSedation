@@ -2,18 +2,16 @@
 
 use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
-use std::time::Duration;
 use actix_cors::Cors;
 use actix_web::{ web, App, HttpServer};
-use chrono::Utc;
-use code_generator::Code;
-use constants::{CODE_CHECK_INTERVAL_TIME_IN_SEC, EVENT_CHECK_INTERVAL_TIME_IN_MIN, EVENT_EXPIRATION_TIME_IN_MIN};
-use database::Collection;
 use mongodb::Database;
 use private::PrivateKeys;
 use state::AppState;
 use tokio::{ sync::Mutex, net::TcpListener };
 use device_handing::device_connection::handle_device_connection;
+use utils::cleaners;
+
+use crate::database::{get_collection, Collection};
 
 mod constants;
 mod enums;
@@ -38,13 +36,6 @@ async fn initialize() -> (Database, PrivateKeys) {
 
     let (db_joint, private_keys_join) = tokio::join!(db_handle, private_keys_handle);
 
-    let db = match db_joint {
-        Ok(db) => db,
-        Err(error) =>{
-            panic!("db joint failed: {}", error);
-        }
-    };
-
     let private_keys = match private_keys_join {
         Ok(private_keys) => private_keys,
         Err(error) => {
@@ -52,65 +43,32 @@ async fn initialize() -> (Database, PrivateKeys) {
         }
     };
 
-    (db, private_keys)
-}
+    let db = match db_joint {
+        Ok(db) => db,
+        Err(error) =>{
+            panic!("db joint failed: {}", error);
+        }
+    };
 
-async fn clear_old_device_codes_from_db(database : &Database) -> Option<Vec<Code>> {
-    let collection = match database::get_collection(&database, database::CollectionType::DeviceCodeCollection).await {
-        Ok(user_collection) => user_collection,
+    let collection = match get_collection(&db, database::CollectionType::DeviceCollection).await {
+        Ok(collection) => collection,
         Err(error) => {
-            eprintln!("Error: Getting code collection failed in clear_old_device_codes_from_db: {}", error);
-            return  None;
-        }        
+            panic!("Failed to get the device collection while Init: {}", error);
+        }
     };
 
-    let device_code_collection= match collection {
-        Collection::DeviceCode(collection) => collection,
+    let device_collection= match collection {
+        Collection::Device(device) => device,
         _ => {
-            eprintln!("clear_old_device_codes_from_db failed to acquire the device code collection");
-            return None;
+            panic!("Failed get the device collection while Init");
         }
     };
 
-    device_code_collection.remove_device_expired_codes().await
-}
-
-async fn clear_old_device_codes(app_state : Arc<AppState>) {
-    let sleep_duration = Duration::from_secs(CODE_CHECK_INTERVAL_TIME_IN_SEC);
-
-    loop {
-        {
-            let acquired_db = app_state.db.lock().await;
-            let acquired_codes = clear_old_device_codes_from_db(&acquired_db).await;
-
-            if let Some(codes) = acquired_codes {
-                let mut codes_cache = app_state.generated_codes.lock().await;
-                
-                for code in codes {
-                    codes_cache.remove(&code);
-                }
-            }
-        }
-
-        tokio::time::sleep(sleep_duration).await;
+    if device_collection.put_all_devices_offline().await == false {
+        panic!("Failed to put all devices as offline while Init");
     }
-}
 
-async fn clear_old_device_events_from_queue(app_state : Arc<AppState>) {
-    let sleep_duration = Duration::from_secs(EVENT_CHECK_INTERVAL_TIME_IN_MIN * 60);
-
-    loop {
-        {
-            let mut events = app_state.device_events.lock().await;
-            let current_time = Utc::now();
-
-            events.retain(|_, event|{
-                current_time.signed_duration_since(event.time_stamp.to_chrono()) < chrono::Duration::minutes(EVENT_EXPIRATION_TIME_IN_MIN)
-            });
-        }
-
-        tokio::time::sleep(sleep_duration).await;
-    }
+    (db, private_keys)
 }
 
 async fn start_socket_server(app_state : Arc<AppState>) -> std::io::Result<()> {
@@ -145,12 +103,12 @@ async fn main() {
 
     let clear_codes_task_app_state = app_state.clone();
     tokio::spawn(async move {
-        clear_old_device_codes(clear_codes_task_app_state).await;
+        cleaners::code_clean::clear_old_device_codes(clear_codes_task_app_state).await;
     });
 
     let clear_events_task_app_state = app_state.clone();
     tokio::spawn(async move {
-        clear_old_device_events_from_queue(clear_events_task_app_state).await;
+        cleaners::event_clean::clear_old_device_events_from_queue(clear_events_task_app_state).await;
     });
 
     let web_server = HttpServer::new(move || {

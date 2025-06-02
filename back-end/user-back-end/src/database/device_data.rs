@@ -145,6 +145,7 @@ impl DeviceDataCollection {
             }
         }
     }
+
     pub async fn update_device_status(self, device_id : &DeviceId, status : WebStatus) -> bool {
         let filter = doc! { "_id" : device_id._id };
         let update = doc! { "$set" : { "device_state" : status.as_native_value() } };
@@ -161,5 +162,24 @@ impl DeviceDataCollection {
             }
         }
     }
-    //http POST 127.0.0.1:9000/register_device device_id=680908739585f2452bf4cbbe device_type:=3
+
+    pub async fn put_all_devices_offline(self) -> bool {
+        let online_status = WebStatus::as_native_value(&WebStatus::ONLINE);
+        let offline_status = WebStatus::as_native_value(&WebStatus::OFFLINE);
+
+        let filter = doc! { "device_state" : online_status };
+        let update = doc! { "$set" : { "device_state" : offline_status } };
+
+        let update_status = self.collection.update_many(filter, update, None).await;
+
+        match update_status {
+            Ok(_) => {
+                return  true;
+            },
+            Err(error) => {
+                eprintln!("Putting devices to offline failed: {}", error);
+                return false;
+            }
+        }
+    }
 }
