@@ -1,4 +1,8 @@
+from argon2 import PasswordHasher
+import getpass
+
 DATABASE_NAME = "user_data"
+ph = PasswordHasher()
 
 def add_card():
     cards = ""
@@ -74,10 +78,10 @@ def main():
 
         break
 
-    password = ""
+    hashed_password = ""
 
     while True:
-        password = input("Password: ")
+        password = getpass.getpass("Password: ")
 
         if ' ' in password:
             print("Password cannot have white spaces!")
@@ -86,12 +90,13 @@ def main():
         if len(password) < 8 or len(password) > 64:
             print("Password is too short or too long. Password length from 8 to 64 characters")
             continue
-
+        
+        hashed_password = ph.hash(password)
         break
     
     cards, next_card_id = add_card()
 
-    print("db." + DATABASE_NAME + ".insertOne({username:\"" + username + "\"" + ", password:\"" + password + "\"" + ", next_card_id: Long(" + str(next_card_id) + "), cards:[" + cards + "]})")
+    print("db." + DATABASE_NAME + ".insertOne({username:\"" + username + "\"" + ", password:\"" + hashed_password + "\"" + ", next_card_id: Long(" + str(next_card_id) + "), cards:[" + cards + "]})")
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,6 @@
 // Rework 3.0
 
+use argon2::{ password_hash::{PasswordHash, PasswordVerifier}, Argon2};
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, Bson, Document };
 use std::cmp::{ max, min };
@@ -22,12 +23,8 @@ impl UserDataCollection {
     }
 
     pub async fn get_user_id(&self, login_data : requests::LoginUserRequest) -> Option<UserId> {
-        let filter = match to_document(&login_data) {
-            Some(document) => document,
-            None => { return None; }
-        };
-
-        let find_options = FindOneOptions::builder().projection(doc! {"_id": 1}).build();
+        let filter = doc! { "username" : login_data.username };
+        let find_options = FindOneOptions::builder().projection(doc! {"_id": 1, "password" : 1}).build();
         let find_result = self.collection.find_one(filter, find_options).await;
     
          let find_document = match find_result {
@@ -38,18 +35,42 @@ impl UserDataCollection {
             }
         };
 
-        let user_id_result = match find_document {
-            Some(document) => bson::from_bson::<UserId>(Bson::Document(document)),
+        let (user_id, password) = match find_document {
+            Some(document) => {
+                let id = match document.get_object_id("_id") {
+                    Ok(id) => id,
+                    Err(error) => {
+                        eprintln!("Getting user id from result failed: {}", error);
+                        return None;
+                    }
+                };
+
+                let password = match document.get_str("password") {
+                    Ok(password) => password.to_string(),
+                    Err(error) => {
+                        eprintln!("Getting user password from result failed: {}", error);
+                        return None;
+                    }
+                };
+
+                (id, password)
+            },
             None => { return None; }
         };
 
-        match user_id_result {
-            Ok(user_id) => Some(user_id),
+        let parsed_hash = match PasswordHash::new(&password) {
+            Ok(password) => password,
             Err(error) => {
-                eprintln!("Document to UserId conversion failed: {}", error);
+                eprintln!("Getting user password hashing failed: {}",error);
                 return None;
             }
+        };
+
+        if Argon2::default().verify_password(login_data.password.as_bytes(), &parsed_hash).is_ok() {
+            return Some(UserId::new(user_id));
         }
+
+        None
     }
 
     pub async fn get_user_page_info(&self, user_id : UserId) -> Option<responses::GetUserPageInfoResponse> {
