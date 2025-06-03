@@ -1,4 +1,5 @@
-use mongodb::{ options::FindOneOptions, Collection, Database };
+use futures::StreamExt;
+use mongodb::{ options::{FindOneOptions, FindOptions}, Collection, Database };
 use bson::{ doc, oid::ObjectId, Bson, Document };
 use serde::{Deserialize, Serialize};
 use crate::{communication::requests::RegisterDeviceRequest, enums::web_status::WebStatus, utils::{device_states::{ DeviceState, DeviceStateValue }, device_types::DeviceTypeValue}};
@@ -12,6 +13,11 @@ pub struct DeviceEntry {
     device_master : Option<ObjectId>,
     card_id :       Option<CardId>,
     device_state : DeviceStateValue
+}
+
+pub struct DeviceStatusForCard {
+    card_id : CardId,
+    status : DeviceStateValue
 }
 
 pub struct DeviceDataCollection {
@@ -161,6 +167,55 @@ impl DeviceDataCollection {
                 return false;
             }
         }
+    }
+
+    pub async fn get_devices_status_for_user(self, user_id : &UserId) -> Vec<DeviceStatusForCard> {
+        let mut devices_status = Vec::<DeviceStatusForCard>::new();
+
+        let filter = match to_document(user_id) {
+            Some(filter) => filter,
+            None => { 
+                eprintln!("Get devices status: Filter cannot be constructed!");
+                return devices_status;
+            }
+        };
+
+        let find_options = FindOptions::builder().projection(doc! {"card_id": 1, "device_state" : 1}).build();
+        let find_result = self.collection.find(filter, find_options).await;
+
+        // Configure the batch size if this takes to long
+        let mut cursor = match find_result {
+            Ok(cursor) => cursor,
+            Err(error) => {
+                eprintln!("Error: Get device status cursor error: {}", error);
+                return devices_status;
+            }
+        };
+
+        while let Some(document) = cursor.next().await {
+            let device_status = match document {
+                Ok(result) => {
+                    let card_id = result.get_i64("card_id");
+                    let status = result.get_i32("device_state");
+
+                    if card_id.is_ok() && status.is_ok() {
+                        Some(DeviceStatusForCard { card_id : card_id.unwrap(), status : status.unwrap() })
+                    } 
+                    else {
+                        None
+                    }
+                }
+                Err(_) => {
+                    None
+                }
+            };
+
+            if device_status.is_some() {
+                devices_status.push(device_status.unwrap());
+            }
+        }
+
+        devices_status
     }
 
     pub async fn put_all_devices_offline(self) -> bool {
