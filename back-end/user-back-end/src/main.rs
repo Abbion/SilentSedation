@@ -128,6 +128,7 @@ async fn main() {
         .service(services::create_card)
         .service(services::update_card)
         .service(services::delete_card)
+        .service(services::get_card_states)
         .service(services::connect_card_to_device)
         .service(services::perform_action_on_device)
         //Device calls

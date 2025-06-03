@@ -15,6 +15,7 @@ pub struct DeviceEntry {
     device_state : DeviceStateValue
 }
 
+#[derive(Serialize)]
 pub struct DeviceStatusForCard {
     card_id : CardId,
     status : DeviceStateValue

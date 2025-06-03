@@ -3,7 +3,7 @@
 use std::sync::Arc;
 use actix_web::{http::header::ContentType, post, web::{ self }, HttpResponse, Responder};
 use bson::DateTime;
-use crate::{code_generator::Code, communication::{ requests::{self, ConnectCardToDeviceRequest, PerformActionOnDeviceRequest }, responses }, constants::{self, MAX_SHUFFLE_COUNT}, database::{ DatabaseObjectId, DeviceId }, enums::device_actions::DeviceActionType, events::device_events::DeviceEvent, utils::device_types::DeviceType};
+use crate::{code_generator::Code, communication::{ requests::{self, ConnectCardToDeviceRequest, GetBasicUserRequest, PerformActionOnDeviceRequest }, responses }, constants::{self, MAX_SHUFFLE_COUNT}, database::{ DatabaseObjectId, DeviceId }, enums::device_actions::DeviceActionType, events::device_events::DeviceEvent, utils::device_types::DeviceType};
 use crate::database::{ self, CollectionType, UserId, Collection };
 use crate::database::error_types::DatabaseError;
 use crate::auth;
@@ -446,6 +446,34 @@ pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web
             }
         }   
     }
+}
+
+#[post("/get_card_states")]
+pub async fn get_card_states(body: web::Json<GetBasicUserRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
+    let db = &data.db.lock().await;
+    let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
+        Ok(id) => id,
+        Err(response) => return response
+    };
+
+    let collection = match database::get_collection(&db, CollectionType::DeviceCollection).await {
+        Ok(user_collection) => user_collection,
+        Err(error) => {
+            eprintln!("{}", error);
+            return HttpResponse::InternalServerError().body("Internal get card states error: 1");
+        }
+    };
+
+    let device_collection= match collection {
+        Collection::Device(device) => device,
+        _ => {
+            return HttpResponse::InternalServerError().body("Internal get card states error: 2");
+        }
+    };
+
+    let device_states = device_collection.get_devices_status_for_user(&user_id).await;
+
+    HttpResponse::Ok().json(device_states)
 }
 
 #[post("/perform_action_on_device")]
