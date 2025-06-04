@@ -23,13 +23,15 @@
     import UserDash from './UserDash.vue'
     import DeviceCard from './deviceCard/DeviceCard.vue'
     import { useRouter } from 'vue-router';
-    import { onMounted, ref } from 'vue';
+    import { onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue';
     import axios from 'axios';
 
-    let cards_id = ref<number[]>([]);
+    let cards_id = ref<number[]>([])
     let username = "empty"
+    let state_udpate_call: number
 
     const router = useRouter();
+    const fetch_device_state_interval = 5000;
 
     onMounted(() => {
         let token = localStorage.getItem('token');
@@ -63,7 +65,26 @@
             ClearStorage();
             NavigateToLogIn();
         }
+
+        state_udpate_call = window.setInterval(fetchDeviceState, fetch_device_state_interval)
     });
+
+    onBeforeUnmount(() => {
+        clearInterval(state_udpate_call)
+    })
+
+    function fetchDeviceState() {
+        let token = localStorage.getItem('token');
+
+        if (token !== null) {
+            axios.post('http://localhost:9000/get_card_states', {
+                    token: token
+            })
+            .then(function (response) {
+                console.log(response)
+            })
+        }
+    }
 
     function ClearStorage() {
         localStorage.clear();

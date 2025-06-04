@@ -15,7 +15,7 @@ pub struct DeviceEntry {
     device_state : DeviceStateValue
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct DeviceStatusForCard {
     card_id : CardId,
     status : DeviceStateValue
@@ -173,14 +173,7 @@ impl DeviceDataCollection {
     pub async fn get_devices_status_for_user(self, user_id : &UserId) -> Vec<DeviceStatusForCard> {
         let mut devices_status = Vec::<DeviceStatusForCard>::new();
 
-        let filter = match to_document(user_id) {
-            Some(filter) => filter,
-            None => { 
-                eprintln!("Get devices status: Filter cannot be constructed!");
-                return devices_status;
-            }
-        };
-
+        let filter = doc!{"device_master" : user_id._id};
         let find_options = FindOptions::builder().projection(doc! {"card_id": 1, "device_state" : 1}).build();
         let find_result = self.collection.find(filter, find_options).await;
 
