@@ -5,7 +5,11 @@ export interface CardData {
     name: string;
     device_type: DeviceType;
     device_properties: Object;
-    code: string;
+}
+
+export interface CardDataWithCode {
+    card_data : CardData;
+    code : string;
 }
 
 export interface Option {

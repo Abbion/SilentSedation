@@ -53,7 +53,7 @@
     import CheckIcon from '../icons/CheckIcon.vue';
     import DeleteIcon from '../icons/DeleteIcon.vue'
 
-    import type { CardData } from '../common/Interfaces'
+    import type { CardData, CardDataWithCode } from '../common/Interfaces'
     import { DeviceTypeUtils } from '../common/EnumUtils';
 
     import { ref, defineEmits, onUpdated, onMounted  } from 'vue'
@@ -88,12 +88,6 @@
 
             if (device_type_element.value && props.p_card_data.device_type > 0) {
                 device_type_element.value.selectedIndex = props.p_card_data.device_type - 1;
-            }
-
-            for (let i = 0; i < props.p_card_data.code.length; i++) {
-                if (device_code_elements.value) {
-                    device_code_elements.value[i].value = props.p_card_data.code[i].toString();
-                }
             }
         }
     });
@@ -219,15 +213,22 @@
         }
 
         if (is_data_inputed_correctely) {
-            const returnCardData : CardData = { 
+            const cardData : CardData = { 
                 id: props.p_card_data.id,
                 name: card_name.value.toString(),
                 device_type: DeviceTypeUtils.IndexToDeviceType(index),
                 device_properties: {},
-                code: device_code_elements.value.filter(element => element).map(element => { return element.value}).join(''),
              };
 
-            emit('CardEditAddButtonClicked', returnCardData);
+
+            let code = device_code_elements.value.filter(element => element).map(element => { return element.value}).join('')
+            
+            let return_data : CardDataWithCode = {
+                card_data : cardData,
+                code : code
+            };
+
+            emit('CardEditAddButtonClicked', return_data);
         }
     }
 

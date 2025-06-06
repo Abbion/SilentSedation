@@ -35,7 +35,7 @@
 
     import { ref, defineEmits, onMounted } from 'vue'
 
-    import type { CardData } from '../common/Interfaces'
+    import type { CardData, CardDataWithCode } from '../common/Interfaces'
     import { DeviceType, StringToDeviceType, ConnectionStatus } from '../common/Enums';
 
     import axios from 'axios';
@@ -56,7 +56,7 @@
     let edit_state_comp_ref = ref<typeof CardEditState>();
     let state = ref(CardState.Add);
     let card_container_html = ref<HTMLDivElement>();
-    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.Empty, device_properties: {}, code: "" };
+    let card_data : CardData = { id: -1, name: "", device_type: DeviceType.Empty, device_properties: {} };
     let cancel_from_edit = false;
     
     onMounted(()=>{
@@ -138,7 +138,7 @@
         state.value = CardState.Add;
     }
 
-    function CreateCard(data : CardData) {
+    function CreateCard(data : CardDataWithCode) {
         ConnectCardToDevice(data)
         .then(function(update_return) {
             // Check if the device was found and assigned to card
@@ -152,7 +152,7 @@
                 edit_state_comp_ref.value.ClearFields();
             }
         }).then(function() {
-            UpdateCard(data)
+            UpdateCard(data.card_data)
         }).then(function() {
             GetCard();
             emit('CardCreated');
@@ -161,7 +161,7 @@
         });
     }
 
-    async function ConnectCardToDevice(data : CardData) {
+    async function ConnectCardToDevice(data : CardDataWithCode) {
         let token = localStorage.getItem('token');
 
         if (token === null) {
@@ -171,8 +171,8 @@
 
         return axios.post('http://localhost:9000/connect_card_to_device', {
             token : token,
-            id : data.id,
-            device_type : data.device_type,
+            id : data.card_data.id,
+            device_type : data.card_data.device_type,
             code : data.code
         });
     }
@@ -223,7 +223,6 @@
                 card_data.name = "";
         
                 card_data.device_type = DeviceType.Empty;
-                card_data.code = "";
 
                 cancel_from_edit = true;
                 

@@ -6,7 +6,7 @@
         </div>
 
         <div class="s_UserPageInfo">
-            <p class="s_PreventSelect" @click="ClearStorage">
+            <p class="s_PreventSelect">
                 Devices
             </p>
 

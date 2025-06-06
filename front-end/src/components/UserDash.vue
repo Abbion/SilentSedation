@@ -42,6 +42,7 @@
 
     function LogOut() {
         router.replace('/')
+        localStorage.clear();
     }
 
     document.onmousedown = function(_) {
