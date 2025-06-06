@@ -14,7 +14,7 @@
         </div>
 
         <div class="s_UserPageContent">
-            <DeviceCard v-for="(id) in cards_id" :key="id" :p_card_id="id" @CardCreated="AddEmptyCard" @CardRemoved="RemoveCard"/>
+            <DeviceCard v-for="(id) in cards_id" :key="id" :p_card_id="id" :p_card_status="card_statuses.get(id) ?? ConnectionStatus.Connecting" @CardCreated="AddEmptyCard" @CardRemoved="RemoveCard"/>
         </div>
     </div>
 </template>
@@ -23,10 +23,13 @@
     import UserDash from './UserDash.vue'
     import DeviceCard from './deviceCard/DeviceCard.vue'
     import { useRouter } from 'vue-router';
-    import { onBeforeMount, onBeforeUnmount, onMounted, ref } from 'vue';
+    import { onBeforeUnmount, onMounted, ref } from 'vue';
     import axios from 'axios';
+    import { ConnectionStatus } from './common/Enums';
 
     let cards_id = ref<number[]>([])
+    let card_statuses = ref(new Map<number, ConnectionStatus>)
+
     let username = "empty"
     let state_udpate_call: number
 
@@ -46,8 +49,10 @@
                 username = response.data["username"];
                 let cards = response.data["card_ids"];
 
-                for (let ids of cards) {    
-                    cards_id.value.push(parseInt(ids));
+                for (let ids of cards) {  
+                    let id = parseInt(ids);
+                    cards_id.value.push(id);
+                    card_statuses.value.set(id, ConnectionStatus.Connecting)
                 }
             })
             .catch(function (error) {
@@ -81,7 +86,10 @@
                     token: token
             })
             .then(function (response) {
-                console.log(response)
+                let data = response.data;
+                for ( const card_status of data) {
+                    card_statuses.value.set(card_status.card_id, card_status.status)
+                }
             })
         }
     }

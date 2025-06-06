@@ -15,6 +15,7 @@
 
     <CardUseState v-if="state == CardState.Use"
                   :p_card_data="card_data"
+                  :p_connection_status="p_card_status"
                   @CardOptionsClicked="GoToOptionState"
                   @PropertiesUpdated="UpdateCardProperties"></CardUseState>
 
@@ -35,7 +36,7 @@
     import { ref, defineEmits, onMounted } from 'vue'
 
     import type { CardData } from '../common/Interfaces'
-    import { DeviceType, StringToDeviceType } from '../common/Enums';
+    import { DeviceType, StringToDeviceType, ConnectionStatus } from '../common/Enums';
 
     import axios from 'axios';
 
@@ -48,7 +49,8 @@
 
     const emit = defineEmits(['CardCreated', 'CardRemoved']);
     const props = defineProps<{
-        p_card_id: number
+        p_card_id: number,
+        p_card_status : ConnectionStatus
     }>();
 
     let edit_state_comp_ref = ref<typeof CardEditState>();

@@ -25,3 +25,9 @@ export enum DeviceActionType {
     None = 0,
     Zap = 1
 }
+
+export enum ConnectionStatus {
+    Connecting,
+    Online
+}
+

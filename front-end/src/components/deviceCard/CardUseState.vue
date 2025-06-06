@@ -2,13 +2,13 @@
 <template>
     <div>
         <div class="s_UseHeader">
-            <div class="s_ToolTip s_ConnectionStatus" :class="[ connection_status != ConnectionStatus.Connecting ? 's_ShiftStatus' : '' ]">
-                <div v-if="connection_status == ConnectionStatus.Connecting" class="s_Loader"/>
-                <div v-if="connection_status == ConnectionStatus.Online" class="s_BasicStatus s_Online"/>
-                <div v-if="connection_status == ConnectionStatus.Offline" class="s_Offline"/>
-                <div v-if="connection_status == ConnectionStatus.Failed" class="s_BasicStatus s_Failed"/>
+            <div class="s_ToolTip s_ConnectionStatus" :class="[ p_connection_status != ConnectionStatus.Connecting ? 's_ShiftStatus' : '' ]">
+                <div v-if="p_connection_status == ConnectionStatus.Connecting" class="s_Loader"/>
+                <div v-if="p_connection_status == ConnectionStatus.Online" class="s_Online">
+                    <OnlineIcon/>
+                </div>
                 <div class="s_ToolTipText s_CustomToolTipText">
-                    {{ connection_status_message  }}
+                    {{ p_connection_status == ConnectionStatus.Connecting ? "Connecting..." : "Online" }}
                 </div>
             </div>
             <div class="s_CenterContentVertical s_PreventSelect">
@@ -26,26 +26,20 @@
 
 <script setup lang="ts">
     import axios from 'axios';
-import { DeviceActionType, DeviceType } from '../common/Enums';
+    import { DeviceActionType, DeviceType } from '../common/Enums';
     import type { CardData } from '../common/Interfaces';
     import SchockerControll from './deviceControllers/SchockerControll.vue'
-    import { defineProps, ref } from 'vue'
+    import { defineProps } from 'vue'
 
-    enum ConnectionStatus {
-        Connecting,
-        Online,
-        Offline,
-        Failed
-    }
+    import OnlineIcon from '../icons/OnlineIcon.vue'
+    import { ConnectionStatus } from '../common/Enums';
 
     const props = defineProps<{
         p_card_data : CardData
+        p_connection_status : ConnectionStatus
     }>();
 
     const emit = defineEmits(['PropertiesUpdated', 'CardOptionsClicked']);
-
-    let connection_status = ref(ConnectionStatus.Connecting);
-    let connection_status_message = ref("Connecting...")
 
     function UpdateProperties(power_level : number) {
         switch (props.p_card_data.device_type) {
@@ -113,30 +107,8 @@ import { DeviceActionType, DeviceType } from '../common/Enums';
         margin-right: 20px;
     }
 
-    .s_BasicStatus {
-        width: 10px;
-        height: 10px;
-
-        border-radius: 10px;
-    }
-
     .s_Online {
-        background-color: rgb(174, 228, 178);
-    }
-
-    .s_Offline {
-        width: 8px;
-        height: 8px;
-
-        border-color: var(--color-main-light);
-
-        border-width: 2px;
-        border-style: solid;
-        border-radius: 10px;
-    }
-
-    .s_Failed {
-        background-color: rgb(231, 130, 130);
+        color: rgb(174, 228, 178);
     }
 
     /* source: https://css-loaders.com/wavy/ */
