@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_EntryContainer">
         <p class="s_PreventSelect">
@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
     interface Props {
-        p_input_title: string
+        p_input_title: string,
         p_hide_input?: boolean
     };
 
@@ -18,8 +18,8 @@
         p_hide_input: false
     });
 
-    let value = defineModel<String>();
-    const inputType = props.p_hide_input ? 'password' : 'text';
+    let value = defineModel<String>()
+    const inputType = props.p_hide_input ? 'password' : 'text'
 </script>
 
 <style scoped>

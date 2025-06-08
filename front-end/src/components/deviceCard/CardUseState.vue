@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div>
         <div class="s_UseHeader">
@@ -25,35 +25,35 @@
 </template>
 
 <script setup lang="ts">
-    import axios from 'axios';
-    import { DeviceActionType, DeviceType } from '../common/Enums';
-    import type { CardData } from '../common/Interfaces';
+    import axios from 'axios'
+    import { DeviceActionType, DeviceType } from '../common/Enums'
+    import type { CardData } from '../common/Interfaces'
     import SchockerControll from './deviceControllers/SchockerControll.vue'
     import { defineProps } from 'vue'
 
     import OnlineIcon from '../icons/OnlineIcon.vue'
-    import { ConnectionStatus } from '../common/Enums';
+    import { ConnectionStatus } from '../common/Enums'
 
     const props = defineProps<{
-        p_card_data : CardData
+        p_card_data : CardData,
         p_connection_status : ConnectionStatus
     }>();
 
-    const emit = defineEmits(['PropertiesUpdated', 'CardOptionsClicked']);
+    const emit = defineEmits(['PropertiesUpdated', 'CardOptionsClicked'])
 
     function UpdateProperties(power_level : number) {
         switch (props.p_card_data.device_type) {
             case DeviceType.ShockCaller: {
-                console.log("send power level " + power_level);
+                console.log("send power level " + power_level)
                 
-                emit('PropertiesUpdated', { "power" : power_level });
+                emit('PropertiesUpdated', { "power" : power_level })
                 break;
             }
         }
     }
 
     function PerformAction() {
-        let token = localStorage.getItem('token');
+        let token = localStorage.getItem('token')
 
         switch (props.p_card_data.device_type) {
             case DeviceType.ShockCaller: {
@@ -62,12 +62,11 @@
                     card_id : props.p_card_data.id,
                     device_type : props.p_card_data.device_type,
                     action_type : DeviceActionType.Zap
-                });
-                break;
+                })
+                break
             }
         }
     }
-
 </script>
 
 <style scoped>

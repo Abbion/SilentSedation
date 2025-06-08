@@ -1,3 +1,4 @@
+/*REFACTOR 4.0*/
 import type { Option } from './Interfaces'
 import { DeviceType } from './Enums'
 
@@ -12,9 +13,9 @@ export const DeviceTypeUtils = {
     IndexToDeviceType(index : number) : DeviceType {
         switch (index) {
             case 1:
-                return DeviceType.ShockCaller;
+                return DeviceType.ShockCaller
             default:
-                return DeviceType.Empty;
+                return DeviceType.Empty
         }
     }
 }

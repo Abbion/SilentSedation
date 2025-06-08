@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_DashContainer" :class="[ dash_state ? 's_DashContainerOpen' : 's_DashContainerClose']" @mouseenter="cursor_inside_dash = true" @mouseleave="cursor_inside_dash = false">
         <div id="s_UserInfo" class="s_UserAccount s_CursorPointer" @click="ToggleMore">
@@ -28,26 +28,26 @@
     import { ref } from 'vue'
     import { useRouter } from 'vue-router';
 
-    const router = useRouter();
+    const router = useRouter()
     let dash_state = ref(false)
-    let cursor_inside_dash : boolean = false;
+    let cursor_inside_dash : boolean = false
 
     defineProps<{
         username : string
     }>();
 
     function ToggleMore() {
-        dash_state .value= !dash_state.value;
+        dash_state .value= !dash_state.value
     }
 
     function LogOut() {
         router.replace('/')
-        localStorage.clear();
+        localStorage.clear()
     }
 
     document.onmousedown = function(_) {
         if (!cursor_inside_dash) {
-            dash_state .value = false;
+            dash_state .value = false
         }
     }
 </script>

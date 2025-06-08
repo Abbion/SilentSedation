@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_UserPageContainer">
         <div class="s_UserPageTopPanel">
@@ -22,10 +22,10 @@
 <script setup lang="ts">
     import UserDash from './UserDash.vue'
     import DeviceCard from './deviceCard/DeviceCard.vue'
-    import { useRouter } from 'vue-router';
-    import { onBeforeUnmount, onMounted, ref } from 'vue';
-    import axios from 'axios';
-    import { ConnectionStatus } from './common/Enums';
+    import { useRouter } from 'vue-router'
+    import { onBeforeUnmount, onMounted, ref } from 'vue'
+    import axios from 'axios'
+    import { ConnectionStatus } from './common/Enums'
 
     let cards_id = ref<number[]>([])
     let card_statuses = ref(new Map<number, ConnectionStatus>)
@@ -33,11 +33,11 @@
     let username = "empty"
     let state_udpate_call: number
 
-    const router = useRouter();
-    const fetch_device_state_interval = 5000;
+    const router = useRouter()
+    const fetch_device_state_interval = 5000
 
     onMounted(() => {
-        let token = localStorage.getItem('token');
+        let token = localStorage.getItem('token')
 
         if (token !== null) {
             //Get user info
@@ -46,29 +46,29 @@
             })
             //Save user info and create cards
             .then(function (response) {
-                username = response.data["username"];
-                let cards = response.data["card_ids"];
+                username = response.data["username"]
+                let cards = response.data["card_ids"]
 
                 for (let ids of cards) {  
-                    let id = parseInt(ids);
-                    cards_id.value.push(id);
+                    let id = parseInt(ids)
+                    cards_id.value.push(id)
                     card_statuses.value.set(id, ConnectionStatus.Connecting)
                 }
             })
             .catch(function (error) {
-                console.log("Cath:",  error);
-                let status = error["response"].status;
+                console.log("Cath:",  error)
+                let status = error["response"].status
                 //Create a enunm for codes
                 if (status == 401)
                 {
-                    ClearStorage();
-                    NavigateToLogIn();
+                    ClearStorage()
+                    NavigateToLogIn()
                 }
             });
         }
         else {
-            ClearStorage();
-            NavigateToLogIn();
+            ClearStorage()
+            NavigateToLogIn()
         }
 
         state_udpate_call = window.setInterval(fetchDeviceState, fetch_device_state_interval)
@@ -79,14 +79,14 @@
     })
 
     function fetchDeviceState() {
-        let token = localStorage.getItem('token');
+        let token = localStorage.getItem('token')
 
         if (token !== null) {
             axios.post('http://localhost:9000/get_card_states', {
                     token: token
             })
             .then(function (response) {
-                let data = response.data;
+                let data = response.data
                 for ( const card_status of data) {
                     card_statuses.value.set(card_status.card_id, card_status.status)
                 }
@@ -95,11 +95,11 @@
     }
 
     function ClearStorage() {
-        localStorage.clear();
+        localStorage.clear()
     }
 
     function NavigateToLogIn() {
-        router.replace('/');
+        router.replace('/')
     }
 
     function AddEmptyCard() {
@@ -108,20 +108,20 @@
         axios.post('http://localhost:9000/create_card',{
             token: token
         }).then(function(response){
-            console.log("create resp: " + JSON.stringify(response.data));
+            console.log("create resp: " + JSON.stringify(response.data))
             
-            let next_id = response.data["card_id"];
-            cards_id.value.push(next_id);
+            let next_id = response.data["card_id"]
+            cards_id.value.push(next_id)
         }).catch(function(error) {
-            console.log("User page - Add empty card error: ", error);
+            console.log("User page - Add empty card error: ", error)
         })
     }
 
     function RemoveCard(id: number) {
-        const index = cards_id.value.indexOf(id);
+        const index = cards_id.value.indexOf(id)
         
         if (index !== -1) {
-            cards_id.value.splice(index, 1);
+            cards_id.value.splice(index, 1)
         }
     }
 </script>

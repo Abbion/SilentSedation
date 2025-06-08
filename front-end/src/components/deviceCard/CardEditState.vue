@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_MainCardEditContainer">
         <div ref="editi_options_div_element" class="s_EditOptions">
@@ -50,11 +50,11 @@
 </template>
 
 <script setup lang="ts">
-    import CheckIcon from '../icons/CheckIcon.vue';
+    import CheckIcon from '../icons/CheckIcon.vue'
     import DeleteIcon from '../icons/DeleteIcon.vue'
 
     import type { CardData, CardDataWithCode } from '../common/Interfaces'
-    import { DeviceTypeUtils } from '../common/EnumUtils';
+    import { DeviceTypeUtils } from '../common/EnumUtils'
 
     import { ref, defineEmits, onUpdated, onMounted  } from 'vue'
 
@@ -68,148 +68,147 @@
     });
 
     //Emiters
-    const emit = defineEmits(['CardEditAddButtonClicked', 'CardEditCancelButtonClicked']);
+    const emit = defineEmits(['CardEditAddButtonClicked', 'CardEditCancelButtonClicked'])
 
     //Variables
-    const device_options = DeviceTypeUtils.CreateLabelsAndValues();
+    const device_options = DeviceTypeUtils.CreateLabelsAndValues()
 
-    let card_name_error = ref(false);
-    let device_code_error = ref(false);
-    let error_messages = ref<string[]>([]);
+    let card_name_error = ref(false)
+    let device_code_error = ref(false)
+    let error_messages = ref<string[]>([])
 
     const card_name = ref<string>("");
-    const device_type_element = ref<HTMLSelectElement>();
-    const device_code_elements = ref<HTMLInputElement[]>([]);
-    const edit_options_div_element = ref<HTMLDivElement>();
+    const device_type_element = ref<HTMLSelectElement>()
+    const device_code_elements = ref<HTMLInputElement[]>([])
+    const edit_options_div_element = ref<HTMLDivElement>()
 
     onMounted(() => {
         if (props.p_card_data.name != "") {
-            card_name.value = props.p_card_data.name;
+            card_name.value = props.p_card_data.name
 
             if (device_type_element.value && props.p_card_data.device_type > 0) {
-                device_type_element.value.selectedIndex = props.p_card_data.device_type - 1;
+                device_type_element.value.selectedIndex = props.p_card_data.device_type - 1
             }
         }
     });
 
     onUpdated(() => {
         if (edit_options_div_element.value) {
-            const has_scroll_bar = edit_options_div_element.value.offsetHeight < edit_options_div_element.value.scrollHeight;
+            const has_scroll_bar = edit_options_div_element.value.offsetHeight < edit_options_div_element.value.scrollHeight
             
             if (has_scroll_bar)
-                edit_options_div_element.value.style.paddingRight = "calc(8% - 5px)";
+                edit_options_div_element.value.style.paddingRight = "calc(8% - 5px)"
             else
-                edit_options_div_element.value.style.paddingRight = "8%";
+                edit_options_div_element.value.style.paddingRight = "8%"
         }
     });
 
     //Functions
     //[TODO: Move this to a seperate .vue file]
     function CodeDigitEntered(event : KeyboardEvent, index : number) {   
-        const control_keys = ["Backspace", "ArrowLeft", "ArrowRight"];
-        const is_number = /^[0-9]$/.test(event.key);
+        const control_keys = ["Backspace", "ArrowLeft", "ArrowRight"]
+        const is_number = /^[0-9]$/.test(event.key)
         
         //Block input for other kays than numvers and control keys
         if (!is_number && !control_keys.includes(event.key)) {
-            event.preventDefault();
-            return;
+            event.preventDefault()
+            return
         }
 
         //Handle controlKeys
         if (is_number) {
-            return;
+            return
         }
 
-        const input_is_empty = device_code_elements.value[index].value === '';
-        device_code_error.value = false;
+        const input_is_empty = device_code_elements.value[index].value === ''
+        device_code_error.value = false
 
         if (input_is_empty)
         {
             //Backspace
             if (event.key === control_keys[0])
-                PreviousCodeInput(index);
+                PreviousCodeInput(index)
 
             //LeftArrow
             else if (event.key === control_keys[1]) {
-                PreviousCodeInput(index);
-                event.preventDefault();
+                PreviousCodeInput(index)
+                event.preventDefault()
             }
             //RightArrow
             else if (event.key === control_keys[2]) {
-                NextCodeInput(index);
-                event.preventDefault();
+                NextCodeInput(index)
+                event.preventDefault()
             }
         }
         else
         {
-            const is_cursor_at_front = device_code_elements.value[index].selectionStart === 0;    
+            const is_cursor_at_front = device_code_elements.value[index].selectionStart === 0;   
 
             //LeftArrow
             if (is_cursor_at_front && event.key === control_keys[1]) {
-                PreviousCodeInput(index);
-                event.preventDefault();
+                PreviousCodeInput(index)
+                event.preventDefault()
             }
             //RightArrow
             else if (!is_cursor_at_front && event.key === control_keys[2]) {
-                NextCodeInput(index);
-                event.preventDefault();
+                NextCodeInput(index)
+                event.preventDefault()
             }
         }
     }
 
     function HandleCodeInput(event : InputEvent, index : number) {
         if (event.data == null) {
-            return;
+            return
         }
 
-        NextCodeInput(index);
+        NextCodeInput(index)
     }
 
     function PreviousCodeInput(index : number) {
         if (index > 0) {
-            device_code_elements.value[index - 1].focus();
+            device_code_elements.value[index - 1].focus()
         }
     }
 
     function NextCodeInput(index : number) {
         if (index < device_code_elements.value.length - 1) {
-            device_code_elements.value[index + 1].focus();
+            device_code_elements.value[index + 1].focus()
         }
     }
 
     function HandleServerResponse(message : string) {
-        error_messages.value.push(message);
-        device_code_error.value = true;
+        error_messages.value.push(message)
+        device_code_error.value = true
     }
 
     function ClearFields() {
-        card_name.value = "";
-        card_name_error.value = false;
+        card_name.value = ""
+        card_name_error.value = false
 
         if (device_type_element.value !== undefined) {
-            device_type_element.value.value = device_options[0].value;
+            device_type_element.value.value = device_options[0].value
         }
 
         for (let i = 0; i < device_code_elements.value.length; i++) {
-            device_code_elements.value[i].value = '';
+            device_code_elements.value[i].value = ''
         }
 
-        device_code_error.value = false;        
-        
-        error_messages.value = [];
+        device_code_error.value = false
+        error_messages.value = []
     }
 
     function Cancel() {
-        ClearFields();
-        emit('CardEditCancelButtonClicked');
+        ClearFields()
+        emit('CardEditCancelButtonClicked')
     }
 
     function Add() {
-        let is_data_inputed_correctely = CheckIfDataIsInputed();
+        let is_data_inputed_correctely = CheckIfDataIsInputed()
 
-        let index = 0;
+        let index = 0
         if (device_type_element.value) {
-            index = device_type_element.value.selectedIndex + 1;
+            index = device_type_element.value.selectedIndex + 1
         }
 
         if (is_data_inputed_correctely) {
@@ -228,96 +227,96 @@
                 code : code
             };
 
-            emit('CardEditAddButtonClicked', return_data);
+            emit('CardEditAddButtonClicked', return_data)
         }
     }
 
     function CheckIfDataIsInputed() {
-        error_messages.value = [];
+        error_messages.value = []
 
-        let is_data_inputed_correctely = CheckCardName();
-        is_data_inputed_correctely = CheckDeviceType() && is_data_inputed_correctely;
-        is_data_inputed_correctely = CheckDeviceCode() && is_data_inputed_correctely;
+        let is_data_inputed_correctely = CheckCardName()
+        is_data_inputed_correctely = CheckDeviceType() && is_data_inputed_correctely
+        is_data_inputed_correctely = CheckDeviceCode() && is_data_inputed_correctely
 
-        return is_data_inputed_correctely;
+        return is_data_inputed_correctely
     }
 
     function CheckCardName() {
         if (card_name.value !== undefined) {
-            const card_name_string = card_name.value;
-            let is_name_input_correct = true;
+            const card_name_string = card_name.value
+            let is_name_input_correct = true
 
             if (card_name_string.length < 6 || card_name_string.length > 24) {
-                is_name_input_correct = false;
-                error_messages.value.push("Device name should contain [6 - 24] characters!");
+                is_name_input_correct = false
+                error_messages.value.push("Device name should contain [6 - 24] characters!")
             }
             
             if (is_name_input_correct) {
-                card_name_error.value = false;
-                return true;
+                card_name_error.value = false
+                return true
             }
             else {
-                card_name_error.value = true;
-                return false;
+                card_name_error.value = true
+                return false
             }
         } 
         else {
-            card_name_error.value = true;
-            error_messages.value.push("Device name is undefined. Internal Error!");
+            card_name_error.value = true
+            error_messages.value.push("Device name is undefined. Internal Error!")
 
-            return false;
+            return false
         }
     }
 
     function CheckDeviceType() {
         if (device_type_element.value !== undefined) {
-            const deviceTypeValues: string[] = device_options.map(option => option.value);
+            const deviceTypeValues: string[] = device_options.map(option => option.value)
             
             if (!(deviceTypeValues.includes(device_type_element.value.value))) {
-                error_messages.value.push("Device type does not exist!");
-                return false;
+                error_messages.value.push("Device type does not exist!")
+                return false
             }
         } 
         else {
-            error_messages.value.push("Device type is undefined. Internal Error!");
-            return false;
+            error_messages.value.push("Device type is undefined. Internal Error!")
+            return false
         }
-        return true;
+        return true
     }
 
     function CheckDeviceCode() {
         if (device_code_elements.value.length > 0) {
-            let isCodeCorrect = true;
+            let isCodeCorrect = true
 
             for (let i = 0; i < device_code_elements.value.length; i++) {
                 if (device_code_elements.value[i] != undefined) {
-                    const digit = device_code_elements.value[i].value;
+                    const digit = device_code_elements.value[i].value
                     
                     if (digit.length != 1 || isNaN(parseInt(digit))) {                        
-                        isCodeCorrect = false;
-                        error_messages.value.push("Device code has missing values!");
+                        isCodeCorrect = false
+                        error_messages.value.push("Device code has missing values!")
                         break;
                     }
                 }
                 else {
-                    isCodeCorrect = false;
-                    error_messages.value.push("Device code input is undefined. Internal Error!");
-                    break;
+                    isCodeCorrect = false
+                    error_messages.value.push("Device code input is undefined. Internal Error!")
+                    break
                 }
             }
 
             if (isCodeCorrect) {
-                device_code_error.value = false;
-                return true;
+                device_code_error.value = false
+                return true
             }
             else {
-                device_code_error.value = true;
-                return false;
+                device_code_error.value = true
+                return false
             }
         }
         else {
-            error_messages.value.push("Device code is undefined. Internal Error!");
-            return false;
+            error_messages.value.push("Device code is undefined. Internal Error!")
+            return false
         }
     }
 

@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_CenterContentVertical">
         <p class="s_PreventSelect">

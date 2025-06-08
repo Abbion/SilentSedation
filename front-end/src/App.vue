@@ -1,4 +1,4 @@
-//Rework Done
+/*REFACTOR 4.0*/
 <template>
     <RouterView />
 </template>

@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_ControllIcon">
         <div class="s_IconCircleFrame">
@@ -34,95 +34,95 @@
 </template>
 
 <script setup lang="ts">
-    import ThunderBoltIcon from '../../icons/ThunderBoltIcon.vue';
-    import AddIcon from '../../icons/AddIcon.vue';
-    import MinusIcon from '../../icons/MinusIcon.vue';
+    import ThunderBoltIcon from '../../icons/ThunderBoltIcon.vue'
+    import AddIcon from '../../icons/AddIcon.vue'
+    import MinusIcon from '../../icons/MinusIcon.vue'
     import { ref, defineProps, onMounted } from 'vue'
-    import { DeviceType, DeviceTypeToString } from '@/components/common/Enums';
+    import { DeviceType, DeviceTypeToString } from '@/components/common/Enums'
 
-    const ZAP_RESET_TIME = 2000;
+    const ZAP_RESET_TIME = 2000
 
-    let power_level = ref<number>(5);
-    let decrease_power_clicked = ref(false);
-    let increase_power_clicked = ref(false);
-    let mouse_down_on_decrease_button = false;
-    let mouse_down_on_increase_button = false;
+    let power_level = ref<number>(5)
+    let decrease_power_clicked = ref(false)
+    let increase_power_clicked = ref(false)
+    let mouse_down_on_decrease_button = false
+    let mouse_down_on_increase_button = false
 
-    let zap_button_clicked = ref(false);
+    let zap_button_clicked = ref(false)
 
     const props = defineProps<{
-        p_properties: Record<string, any>;
+        p_properties: Record<string, any>
     }>();
 
-    const emit = defineEmits(['PowerLevelChanged', 'ActionPressed']);
+    const emit = defineEmits(['PowerLevelChanged', 'ActionPressed'])
 
 
     onMounted(()=> {
-        console.log("props: " + props.p_properties + " - " + DeviceTypeToString(DeviceType.ShockCaller));
+        console.log("props: " + props.p_properties + " - " + DeviceTypeToString(DeviceType.ShockCaller))
         
-        let properties = props.p_properties[DeviceTypeToString(DeviceType.ShockCaller)];
+        let properties = props.p_properties[DeviceTypeToString(DeviceType.ShockCaller)]
         
-        power_level.value = properties.power;
+        power_level.value = properties.power
     });
 
     function DecreasePowerDown() {
-        decrease_power_clicked.value = true;
-        mouse_down_on_decrease_button = true;
+        decrease_power_clicked.value = true
+        mouse_down_on_decrease_button = true
     }
 
     function DecreasePowerUp() {
         if (!mouse_down_on_decrease_button)
-            return;
+            return
 
-        power_level.value -= 1;
+        power_level.value -= 1
 
         if (power_level.value < 1)
-            power_level.value = 1;
+            power_level.value = 1
 
-        emit('PowerLevelChanged', power_level.value);
+        emit('PowerLevelChanged', power_level.value)
 
-        decrease_power_clicked.value = false;
-        mouse_down_on_decrease_button = false;
+        decrease_power_clicked.value = false
+        mouse_down_on_decrease_button = false
     }
 
     function IncreasePowerDown() {
-        increase_power_clicked.value = true;
-        mouse_down_on_increase_button = true;
+        increase_power_clicked.value = true
+        mouse_down_on_increase_button = true
     }
 
     function IncreasePowerUp() {
         if (!mouse_down_on_increase_button)
             return;
 
-        power_level.value += 1;
+        power_level.value += 1
 
         if (power_level.value > 10)
-            power_level.value = 10;
+            power_level.value = 10
 
-        emit('PowerLevelChanged', power_level.value);
+        emit('PowerLevelChanged', power_level.value)
 
-        increase_power_clicked.value = false;
-        mouse_down_on_increase_button = false;
+        increase_power_clicked.value = false
+        mouse_down_on_increase_button = false
     }
 
     function ResetClickDown() {
-        increase_power_clicked.value = false;
-        decrease_power_clicked.value = false;
-        mouse_down_on_decrease_button = false;
-        mouse_down_on_increase_button = false;
+        increase_power_clicked.value = false
+        decrease_power_clicked.value = false
+        mouse_down_on_decrease_button = false
+        mouse_down_on_increase_button = false
     }
 
     function ZapButtonDown() {
         if (zap_button_clicked.value == true)
-            return;
+            return
 
-        zap_button_clicked.value = true;
-        setTimeout(ResetZapButton, ZAP_RESET_TIME);
-        emit('ActionPressed');
+        zap_button_clicked.value = true
+        setTimeout(ResetZapButton, ZAP_RESET_TIME)
+        emit('ActionPressed')
     }
 
     function ResetZapButton() {
-        zap_button_clicked.value = false;
+        zap_button_clicked.value = false
     }
 </script>
 

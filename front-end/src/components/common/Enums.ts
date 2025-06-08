@@ -1,3 +1,4 @@
+/*REFACTOR 4.0*/
 export enum DeviceType {
     Empty = 0,
     ShockCaller = 1
@@ -6,7 +7,7 @@ export enum DeviceType {
 export function StringToDeviceType(device_str : String) : DeviceType {
     switch(String(device_str.toLowerCase())) {
         case "shockcaller":
-            return DeviceType.ShockCaller;
+            return DeviceType.ShockCaller
     }
 
     return DeviceType.Empty;

@@ -1,4 +1,4 @@
-//Rework 2.0
+/*REFACTOR 4.0*/
 <template>
     <div class="s_LoginContainer">
         <div class="s_LoginPageTitle s_PreventSelect">
@@ -21,22 +21,22 @@
 <script setup lang="ts">
     import LoginInput from './LoginInput.vue'
     import LoginActions from './LoginActions.vue'
-    import { useRouter } from 'vue-router';
+    import { useRouter } from 'vue-router'
 
-    import axios from 'axios';
-    import { onMounted, ref } from 'vue';
+    import axios from 'axios'
+    import { onMounted, ref } from 'vue'
 
-    let username : string = "";
-    let password : string = "";
-    let remember : boolean = false;
-    let error_message = ref<string>("");
+    let username : string = ""
+    let password : string = ""
+    let remember : boolean = false
+    let error_message = ref<string>("")
 
-    const router = useRouter();
+    const router = useRouter()
 
     onMounted(() => {
-        let token = localStorage.getItem('token');
+        let token = localStorage.getItem('token')
         if (token !== null) {
-            router.replace('/userPage');
+            router.replace('/userPage')
         }
     })
 
@@ -44,8 +44,8 @@
         error_message.value = "";
 
         if (username.length == 0 && password.length == 0) {
-            error_message.value = "username and password fields are empty";
-            return;
+            error_message.value = "username and password fields are empty"
+            return
         }
 
         axios.post('http://localhost:9000/login', {
@@ -53,14 +53,14 @@
             password: password
         })
         .then(function (response) {
-            let token = response.data["token"];
-            localStorage.setItem('token', token);
-            router.replace('/userPage');
+            let token = response.data["token"]
+            localStorage.setItem('token', token)
+            router.replace('/userPage')
         })
         .catch(function (error) {
-            console.log("Cath:",  error);
-            error_message.value = error.response.data["message"];
-            console.log(error_message);
+            console.log("Cath:",  error)
+            error_message.value = error.response.data["message"]
+            console.log(error_message)
         });
     }
 </script>
