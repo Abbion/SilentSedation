@@ -1,8 +1,9 @@
+// Refactor 4.0
 use chrono::Duration;
 use mongodb::{ Collection, Database };
 use bson::{ doc, oid::ObjectId, DateTime, Document };
 use serde::{Deserialize, Serialize};
-use crate::{code_generator::Code, constants::CODE_EXPIRATION_TIME_IN_MIN, utils::device_types::DeviceTypeValue};
+use crate::{code_generator::Code, constants::CODE_EXPIRATION_TIME_IN_MIN, enums::device_type::DeviceTypeValue};
 use futures::stream::StreamExt;
 
 use super::{to_document, DeviceId, DEVICE_CODE_COLLECTION_NAME};

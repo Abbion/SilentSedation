@@ -1,9 +1,8 @@
-// Rework 3.0
-
+// Refactor 4.0
 use std::str;
 use serde_json::Value;
 use serde::{Deserialize, Serialize};
-use crate::{database::CardId, enums::device_actions::DeviceActionTypeValue, utils::device_types::DeviceTypeValue};
+use crate::{database::CardId, enums::{device_actions::DeviceActionTypeValue, device_type::DeviceTypeValue}};
 
 #[derive(Deserialize, Debug)]
 pub struct GetCardRequest {
@@ -38,7 +37,7 @@ pub struct CreateCardRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ConnectCardToDeviceRequest {
     pub token : String,
-    pub id : CardId, //Change to card_id
+    pub id : CardId,
     pub device_type : DeviceTypeValue,
     pub code : String,
 }
@@ -66,12 +65,11 @@ pub struct DeleteCardRequest {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct RegisterDeviceRequest {
     pub device_id : String,
-    pub device_type : i64, // Chagne it to deviceType
+    pub device_type : DeviceTypeValue
 }
 
-//TODO: add request to struct name
 #[derive(Serialize, Deserialize, Debug)]
-pub struct GenerateDeviceCode {
+pub struct GenerateDeviceCodeRequest {
     pub device_id : String,
     pub device_type : DeviceTypeValue
 }

@@ -1,8 +1,9 @@
+// Refactor 4.0
 use futures::StreamExt;
 use mongodb::{ options::{FindOneOptions, FindOptions}, Collection, Database };
 use bson::{ doc, oid::ObjectId, Bson, Document };
 use serde::{Deserialize, Serialize};
-use crate::{communication::requests::RegisterDeviceRequest, enums::web_status::WebStatus, utils::{device_states::{ DeviceState, DeviceStateValue }, device_types::DeviceTypeValue}};
+use crate::{communication::requests::RegisterDeviceRequest, enums::{device_status::{DeviceState, DeviceStateValue}, device_type::DeviceTypeValue, web_status::WebStatus}};
 
 use super::{to_document, CardId, DeviceId, UserId, DEVICE_COLLECTION_NAME};
 
@@ -95,7 +96,7 @@ impl DeviceDataCollection {
         Some(db_device_id.compare(&device_id))
     }
 
-    pub async fn register_device(&self, register_device_data: RegisterDeviceRequest) -> bool {
+    pub async fn register_device(&self, register_device_data : RegisterDeviceRequest) -> bool {
         let device_id = DeviceId::from_str(&register_device_data.device_id);
 
         let device_id = match device_id {

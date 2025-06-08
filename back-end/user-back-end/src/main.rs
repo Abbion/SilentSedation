@@ -1,5 +1,4 @@
-// Rework 3.0
-
+// Refactor 4.0
 use std::collections::{BTreeSet, HashMap};
 use std::sync::Arc;
 use actix_cors::Cors;
@@ -10,7 +9,6 @@ use state::AppState;
 use tokio::{ sync::Mutex, net::TcpListener };
 use device_handing::device_connection::handle_device_connection;
 use utils::cleaners;
-
 use crate::database::{get_collection, Collection};
 
 mod constants;
@@ -25,6 +23,10 @@ mod state;
 mod code_generator;
 mod events;
 mod device_handing;
+
+const SERVER_ADDRESS : &str = "127.0.0.1";
+const DEVICE_PORT : &str = "9010";
+const SERVICE_PORT : u16 = 9000;
 
 async fn initialize() -> (Database, PrivateKeys) {
     let db_handle = tokio::spawn(async {
@@ -72,7 +74,8 @@ async fn initialize() -> (Database, PrivateKeys) {
 }
 
 async fn start_socket_server(app_state : Arc<AppState>) -> std::io::Result<()> {
-    let listener = TcpListener::bind("127.0.0.1:9010").await?;
+    let adr = std::format!("{}:{}", SERVER_ADDRESS, DEVICE_PORT);
+    let listener = TcpListener::bind(adr).await?;
     println!("Socket server listening on port 9010");
 
     loop {
@@ -136,7 +139,7 @@ async fn main() {
         .service(services::generate_device_code)
     })
     .workers(4)
-    .bind(("127.0.0.1", 9000));
+    .bind((SERVER_ADDRESS, SERVICE_PORT));
 
     let running_server = match web_server {
         Ok(server) => {

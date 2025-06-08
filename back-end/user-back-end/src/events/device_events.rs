@@ -1,5 +1,6 @@
+// Refactor 4.0
 use bson::DateTime;
-use crate::{enums::device_actions::DeviceActionType, utils::device_types::DeviceType};
+use crate::enums::{device_actions::DeviceActionType, device_type::DeviceType};
 
 #[derive(Debug)]
 pub struct DeviceEvent {

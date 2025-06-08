@@ -1,3 +1,4 @@
+// Refactor 4.0
 use std::{sync::Arc, time::Duration};
 use chrono::Utc;
 use crate::{constants::{EVENT_CHECK_INTERVAL_TIME_IN_MIN, EVENT_EXPIRATION_TIME_IN_MIN}, state::AppState};

@@ -1,5 +1,4 @@
-// Rework 3.0
-
+// Refactor 4.0
 use jsonwebtoken::{Algorithm, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use std::time::{SystemTime, UNIX_EPOCH};

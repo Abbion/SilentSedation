@@ -1,3 +1,4 @@
+// Refactor 4.0
 use rand::{seq::SliceRandom, Rng};
 use serde::{Deserialize, Serialize};
 use crate::constants::DEVICE_CODE_LENGTH;
@@ -33,8 +34,8 @@ impl Code {
         }
 
         let mut code_digits : [u8; DEVICE_CODE_LENGTH] = [0; DEVICE_CODE_LENGTH];
-        for (i, c) in string.chars().enumerate() {
-            let digit = c.to_digit(10);
+        for (i, char) in string.chars().enumerate() {
+            let digit = char.to_digit(10);
             match digit {
                 Some(digit) => code_digits[i] = digit as u8,
                 None => { 
@@ -43,6 +44,6 @@ impl Code {
                 }
             }
         }
-        Some(Code { code: code_digits })
+        Some(Code { code : code_digits })
     }
 }

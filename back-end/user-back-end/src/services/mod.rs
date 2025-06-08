@@ -1,15 +1,23 @@
-// Rework 3.0
-
+// Refactor 4.0
 use std::sync::Arc;
 use actix_web::{http::header::ContentType, post, web::{ self }, HttpResponse, Responder};
 use bson::DateTime;
-use crate::{code_generator::Code, communication::{ requests::{self, ConnectCardToDeviceRequest, GetBasicUserRequest, PerformActionOnDeviceRequest }, responses }, constants::{self, MAX_SHUFFLE_COUNT}, database::{ DatabaseObjectId, DeviceId }, enums::device_actions::DeviceActionType, events::device_events::DeviceEvent, utils::device_types::DeviceType};
+use crate::{code_generator::Code,
+            communication::{ requests::{self,
+                                        ConnectCardToDeviceRequest, 
+                                        GetBasicUserRequest, 
+                                        PerformActionOnDeviceRequest }
+                            , responses },
+             constants::{self, MAX_SHUFFLE_COUNT},
+            database::{ DatabaseObjectId, DeviceId }, 
+            enums::{device_actions::DeviceActionType, device_type::DeviceType}, 
+            events::device_events::DeviceEvent};
 use crate::database::{ self, CollectionType, UserId, Collection };
 use crate::database::error_types::DatabaseError;
 use crate::auth;
 use crate::state::AppState;
 
-fn get_user_id(token: &String, jwt_decoder: &auth::jwt::JsonWebTokenData, function_name: &str) -> Result<DatabaseObjectId, HttpResponse> {
+fn get_user_id(token : &String, jwt_decoder : &auth::jwt::JsonWebTokenData, function_name : &str) -> Result<DatabaseObjectId, HttpResponse> {
     let user_token_result = jwt_decoder.decode::<auth::jwt::UserToken>(token.to_owned());
 
     let user_token = match user_token_result {
@@ -31,7 +39,7 @@ fn get_user_id(token: &String, jwt_decoder: &auth::jwt::JsonWebTokenData, functi
 }
 
 #[post("/login")]
-pub async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn login_user(body : web::Json<requests::LoginUserRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let username = body.username.to_string();
     let password = body.password.to_string();
@@ -96,7 +104,7 @@ pub async fn login_user(body: web::Json<requests::LoginUserRequest>, data: web::
 }
 
 #[post("/get_user_page_info")]
-pub async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn get_user_page_info(body : web::Json<requests::GetBasicUserRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -142,7 +150,7 @@ pub async fn get_user_page_info(body: web::Json<requests::GetBasicUserRequest>, 
 }
 
 #[post("/get_next_card_id")]
-pub async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn get_next_card_id(body : web::Json<requests::GetBasicUserRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -187,7 +195,7 @@ pub async fn get_next_card_id(body: web::Json<requests::GetBasicUserRequest>, da
 }
 
 #[post("/get_card")]
-pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn get_card(body : web::Json<requests::GetCardRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -234,7 +242,7 @@ pub async fn get_card(body: web::Json<requests::GetCardRequest>, data: web::Data
 }
 
 #[post("/create_card")]
-pub async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn create_card(body : web::Json<requests::CreateCardRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -279,7 +287,7 @@ pub async fn create_card(body: web::Json<requests::CreateCardRequest>, data: web
 }
 
 #[post("/connect_card_to_device")]
-pub async fn connect_card_to_device(body: web::Json<ConnectCardToDeviceRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn connect_card_to_device(body : web::Json<ConnectCardToDeviceRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -349,7 +357,7 @@ pub async fn connect_card_to_device(body: web::Json<ConnectCardToDeviceRequest>,
 }
 
 #[post("/update_card")]
-pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn update_card(body : web::Json<requests::UpdateCardRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -396,7 +404,7 @@ pub async fn update_card(body: web::Json<requests::UpdateCardRequest>, data: web
 }
 
 #[post("/delete_card")]
-pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn delete_card(body : web::Json<requests::DeleteCardRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -449,7 +457,7 @@ pub async fn delete_card(body: web::Json<requests::DeleteCardRequest>, data: web
 }
 
 #[post("/get_card_states")]
-pub async fn get_card_states(body: web::Json<GetBasicUserRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn get_card_states(body : web::Json<GetBasicUserRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -477,7 +485,7 @@ pub async fn get_card_states(body: web::Json<GetBasicUserRequest>, data : web::D
 }
 
 #[post("/perform_action_on_device")]
-pub async fn perform_action_on_device(body: web::Json<PerformActionOnDeviceRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn perform_action_on_device(body : web::Json<PerformActionOnDeviceRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let user_id = match get_user_id(&body.token, &data.jwt, "get user page info") {
         Ok(id) => id,
@@ -568,7 +576,7 @@ pub async fn perform_action_on_device(body: web::Json<PerformActionOnDeviceReque
 }
 
 #[post("/register_device")]
-pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn register_device(body : web::Json<requests::RegisterDeviceRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let collection = match database::get_collection(&db, CollectionType::DeviceCollection).await {
         Ok(device_collection) => device_collection,
@@ -619,7 +627,7 @@ pub async fn register_device(body: web::Json<requests::RegisterDeviceRequest>, d
 }
 
 #[post("/generate_device_code")]
-pub async fn generate_device_code(body: web::Json<requests::GenerateDeviceCode>, data: web::Data<Arc<AppState>>) -> impl Responder {
+pub async fn generate_device_code(body : web::Json<requests::GenerateDeviceCodeRequest>, data : web::Data<Arc<AppState>>) -> impl Responder {
     let db = &data.db.lock().await;
     let collection = match database::get_collection(&db, CollectionType::DeviceCodeCollection).await {
         Ok(device_code_collection) => device_code_collection,

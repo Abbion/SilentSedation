@@ -1,3 +1,4 @@
+// Refactor 4.0
 pub type DeviceActionTypeValue = i64;
 
 #[derive(PartialEq, Eq, Debug)]
@@ -14,6 +15,8 @@ impl DeviceActionType {
         }
     }
 
+    // For future use
+    #[allow(dead_code)]
     pub fn as_native_value(&self) -> DeviceActionTypeValue {
         match self {
             DeviceActionType::Zap(_) => 1,

@@ -1,4 +1,4 @@
-
+// Refactor 4.0
 pub type WebStatusValue = u32;
 
 pub enum WebStatus {
@@ -7,6 +7,8 @@ pub enum WebStatus {
 }
 
 impl WebStatus {
+    // For future use
+    #[allow(dead_code)]
     pub fn new(status : WebStatusValue) -> WebStatus {
         match status {
             1 => return WebStatus::ONLINE,

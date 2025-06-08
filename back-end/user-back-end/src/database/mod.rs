@@ -1,5 +1,4 @@
-// Rework 3.0
-
+// Refactor 4.0
 use core::fmt;
 use std::str::FromStr;
 use mongodb::{ options::ClientOptions, Client, Database };
@@ -27,6 +26,18 @@ pub enum CollectionType {
     DeviceCodeCollection,
 }
 
+pub enum Collection {
+    User(UserDataCollection),
+    Device(DeviceDataCollection),
+    DeviceCode(DeviceCodeDataCollection)
+}
+
+pub type UserId = DatabaseObjectId;
+pub type CardId = i64;
+pub type DeviceId = DatabaseObjectId;
+
+pub struct DatabaseReadError(&'static str);
+
 impl CollectionType {
     fn as_str(&self) -> &str {
         match self {
@@ -36,14 +47,6 @@ impl CollectionType {
         }
     }
 }
-
-pub enum Collection {
-    User(UserDataCollection),
-    Device(DeviceDataCollection),
-    DeviceCode(DeviceCodeDataCollection)
-}
-
-pub struct DatabaseReadError(&'static str);
 
 impl fmt::Display for DatabaseReadError {
     fn fmt(&self, f : &mut fmt::Formatter) -> fmt::Result {
@@ -112,10 +115,6 @@ impl DatabaseObjectId {
         return self._id == cmp._id;
     }
 }
-
-pub type UserId = DatabaseObjectId;
-pub type CardId = i64;
-pub type DeviceId = DatabaseObjectId;
 
 pub async fn connect_to_database() -> Database {
     let parse_result = ClientOptions::parse(format!("mongodb://{}", MONGO_DB_ADDRES)).await;

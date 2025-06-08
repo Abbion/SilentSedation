@@ -1,15 +1,15 @@
+// Refactor 4.0
 use std::{sync::Arc, time::Duration};
 use tokio::{io::{AsyncBufReadExt, AsyncWriteExt, BufReader, Lines}, net::tcp::{OwnedReadHalf, OwnedWriteHalf}, time::timeout};
-use crate::{communication::requests::GenerateDeviceCode,
+use crate::{communication::requests::GenerateDeviceCodeRequest,
             constants::{DEVICE_NEXT_LINE_AWAIT_TIME_IN_MS, EVENT_LOOP_INTERVAL_TIME_IN_MS, MAX_DEVICE_DATA_REQUERT_ATTEMPTS},
             database::{self, Collection, DeviceId},
-            enums::{device_actions::DeviceActionType, web_status::WebStatus},
+            enums::{device_actions::DeviceActionType, device_type::DeviceType, web_status::WebStatus},
             events::device_events::DeviceEvent,
-            state::AppState,
-            utils::device_types::DeviceType };
+            state::AppState};
 
 pub async fn handle_device_connection(stream : tokio::net::TcpStream, app_state : Arc<AppState>) {
-    println!("Device connected: {:?}", stream);
+    //println!("Device connected: {:?}", stream);
 
     let (device_data, mut lines, mut write_half) = get_device_data(stream).await;
 
@@ -97,7 +97,7 @@ pub async fn handle_device_connection(stream : tokio::net::TcpStream, app_state 
         return;
     }
 
-    println!("Device disconnected");
+    //println!("Device disconnected");
 }
 
 async fn update_device_web_status(device_id : &DeviceId, web_status : WebStatus, app_state : Arc<AppState>) -> bool {
@@ -121,7 +121,7 @@ async fn update_device_web_status(device_id : &DeviceId, web_status : WebStatus,
     device_collection.update_device_status(device_id, web_status).await
 }
 
-async fn get_device_data(stream : tokio::net::TcpStream) -> (Option<GenerateDeviceCode>, Lines<BufReader<OwnedReadHalf>>, OwnedWriteHalf) {
+async fn get_device_data(stream : tokio::net::TcpStream) -> (Option<GenerateDeviceCodeRequest>, Lines<BufReader<OwnedReadHalf>>, OwnedWriteHalf) {
     let mut request_attempts = 0;
 
     let (read_half, mut write_half) = stream.into_split();
@@ -152,7 +152,7 @@ async fn get_device_data(stream : tokio::net::TcpStream) -> (Option<GenerateDevi
             }
         };
 
-        let device_data : GenerateDeviceCode = match serde_json::from_str(&device_data) {
+        let device_data : GenerateDeviceCodeRequest = match serde_json::from_str(&device_data) {
           Ok(parsed_data)  => parsed_data,
           Err(error) => {
             eprintln!("Geting device data failed while parsing json: {}", error);
@@ -173,7 +173,7 @@ async fn get_device_data(stream : tokio::net::TcpStream) -> (Option<GenerateDevi
     (None, lines, write_half)
 }
 
-fn get_response_for_event(event: &DeviceEvent, device_type: &DeviceType) -> Option<String> {
+fn get_response_for_event(event : &DeviceEvent, device_type : &DeviceType) -> Option<String> {
     if event.device_type.as_native_value() != device_type.as_native_value() {
         return None;
     }

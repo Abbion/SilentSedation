@@ -1,14 +1,12 @@
-// Rework 3.0
-
+// Refactor 4.0
 use argon2::{ password_hash::{PasswordHash, PasswordVerifier}, Argon2};
 use mongodb::{ options::FindOneOptions, Collection, Database };
 use bson::{ doc, Bson, Document };
 use std::cmp::{ max, min };
-use crate::communication::requests::CardData;
+use crate::{communication::requests::CardData, enums::device_type::{DeviceType, ShockCallerData}};
 use crate::communication::responses::CreateCardResponse;
 use crate::communication::{ requests, responses };
 use crate::database::{ to_document, UserId };
-use crate::utils::device_types::{ DeviceType, ShockCallerData };
 use crate::constants;
 use super::error_types::DatabaseError;
 use super::{CardId, USER_COLLECTION_NAME};
@@ -102,6 +100,7 @@ impl UserDataCollection {
                     Err(_) => { return None; }
                 };
 
+                // Vec<CodeId>
                 let mut ids_vec = Vec::new();
 
                 for card in cards {
@@ -326,7 +325,6 @@ impl UserDataCollection {
         Ok(())
     }
     
-    //db.user_data.updateOne({ username : "Wiktor" }, { $pull : { cards : { id: Long("2") }}})
     pub async fn delete_card(&self, user_id : UserId, card_id : CardId) -> Result<(), DatabaseError> {
         let is_device_type_empty = self.is_card_device_of_type(user_id.clone(), card_id, DeviceType::Empty()).await;
 
