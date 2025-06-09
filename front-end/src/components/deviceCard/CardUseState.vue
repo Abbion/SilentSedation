@@ -11,7 +11,7 @@
                     {{ p_connection_status == ConnectionStatus.Connecting ? "Connecting..." : "Online" }}
                 </div>
             </div>
-            <div class="s_CenterContentVertical s_PreventSelect">
+            <div class="s_CardName s_CenterContentVertical s_PreventSelect">
                     {{ p_card_data.name }}
             </div>
             <div class="s_UseOptions s_CursorPointer s_PreventSelect" @click="$emit('CardOptionsClicked')">...</div>
@@ -80,6 +80,14 @@
         display: flex;
         flex-direction: row;
         justify-content: center;
+    }
+
+    .s_CardName {
+        width: 100px;
+
+        font-size: 14px;
+        text-align: center;
+        overflow-y: hidden;
     }
 
     .s_CustomToolTipText {

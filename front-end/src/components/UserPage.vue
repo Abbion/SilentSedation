@@ -128,7 +128,7 @@
 
 <style scoped>
     .s_UserPageContainer {
-        width: 1280px;
+        width: 1200px;
 
         display: flex;
         flex-direction: column;
@@ -139,11 +139,13 @@
         position: fixed;
         height:80px;
         width: 100%;
+        
+        z-index: 10;
     }
 
     .s_UserPageInfo {
         margin-top: 80px;
-        width: 75%;
+        width: 95%;
     }
 
     .s_UserPageInfo > p {
@@ -170,5 +172,22 @@
         flex-wrap: wrap;
         justify-content: center;
         max-width: 75%;
+    }
+    @media only screen and (max-width: 1200px) {
+        .s_UserPageContainer {
+            width: 800px;
+        }
+    }
+
+    @media only screen and (max-width: 800px) {
+        .s_UserPageContainer {
+            width: 400px;
+        }
+    }
+
+    @media only screen and (max-width: 400px) {
+        .s_UserPageContainer {
+            width: 300px;
+        }
     }
 </style>

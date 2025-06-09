@@ -1,7 +1,7 @@
 /*REFACTOR 4.0*/
 <template>
     <div class="s_CenterContentVertical">
-        <p class="s_PreventSelect">
+        <p class="s_CardName s_PreventSelect">
             {{ p_card_name }}
         </p>
         <div class="s_RoundButton s_HighlightElement s_CursorPointer" @click="$emit('CardOptionsDeleteButtonClicked')">
@@ -44,6 +44,14 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+    }
+
+    .s_CardName {
+        width: 100px;
+
+        font-size: 14px;
+        text-align: center;
+        overflow-y: hidden;
     }
 
     .s_TrashIcon {

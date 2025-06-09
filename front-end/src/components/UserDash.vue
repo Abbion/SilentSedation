@@ -54,6 +54,7 @@
 
 <style scoped>
     .s_DashContainer {
+        background-color: var(--color-main-dark);
         margin-left: 35px;
         margin-top: 30px;
 
@@ -64,9 +65,11 @@
 
         display: flex;
         flex-direction: column;
-        align-items: space;
+        align-items: flex-start;
 
         font-size: 18px;
+
+        filter: drop-shadow(0 0 1rem black);
     }
 
     .s_DashContainerClose {
@@ -86,6 +89,8 @@
         display: flex;
         flex-direction: row;
         align-items: center;
+
+        z-index: 10;
     }
 
     .s_UserIconBox {
