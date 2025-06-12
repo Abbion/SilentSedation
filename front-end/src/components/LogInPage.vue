@@ -58,7 +58,7 @@
             router.replace('/userPage')
         })
         .catch(function (error) {
-            console.log("Cath:",  error)
+            console.log("Login error:",  error)
             error_message.value = error.response.data["message"]
             console.log(error_message)
         });

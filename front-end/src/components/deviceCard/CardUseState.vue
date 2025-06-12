@@ -44,8 +44,6 @@
     function UpdateProperties(power_level : number) {
         switch (props.p_card_data.device_type) {
             case DeviceType.ShockCaller: {
-                console.log("send power level " + power_level)
-                
                 emit('PropertiesUpdated', { "power" : power_level })
                 break;
             }

@@ -108,8 +108,6 @@
         axios.post('http://localhost:9000/create_card',{
             token: token
         }).then(function(response){
-            console.log("create resp: " + JSON.stringify(response.data))
-            
             let next_id = response.data["card_id"]
             cards_id.value.push(next_id)
         }).catch(function(error) {

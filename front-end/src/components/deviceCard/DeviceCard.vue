@@ -154,6 +154,8 @@
         }).then(function() {
             UpdateCard(data.card_data)
         }).then(function() {
+            return new Promise(resolve => setTimeout(resolve, 100));
+        }).then(function() {
             GetCard()
             emit('CardCreated')
         }).catch(function(error) {
@@ -218,8 +220,6 @@
                     card_id: card_data.id
             })
             .then(function(response) {
-                console.log("delete resp: ", response.data)
-
                 card_data.name = ""
         
                 card_data.device_type = DeviceType.Empty
